@@ -17,7 +17,7 @@ LIBS		= $(SUPERLULIB) $(BLASLIB)
 # HEADER = $(SuperLUroot)/SRC
 
 CXXFLAGS=-O3 -g -DDEBUG_LOG
-EXE_NAME=HMCTemp
+EXE_NAME=HMCTherm
 SRCDIR=sources
 
 SRC = $(wildcard $(SRCDIR)/*.cpp)
