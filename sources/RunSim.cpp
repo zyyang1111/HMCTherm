@@ -21,14 +21,18 @@ using namespace std;
 using namespace CasHMC;
 
 long numSimCycles = 100000;
+long PowerEpoch = 1000;
 int ARCH_SCHEME = 1;
 int NUM_GRIDS_X = 1; 
 int NUM_GRIDS_Y = 1; 
+int MAT_X = 512; // Byte 
+int MAT_Y = 512; // Byte
 uint64_t lineNumber = 1;
 double memUtil = 0.1;
 double rwRatio = 80;
 string traceType = "";
 string traceFileName = "";
+string logicPFileName = "";
 vector<Transaction *> transactionBuffers;
 CasHMCWrapper *casHMCWrapper;
 
@@ -142,27 +146,29 @@ int main(int argc, char **argv)
 	bool pendingTran = false;
 	bool calc_withLogic = true;
 
-    std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
-    cout << "NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
-    cout << "NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
+    //std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
+    //cout << "NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
+    //cout << "NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
 
 	while(1) {
 		static struct option long_options[] = {
 			{"pwd", required_argument, 0, 'p'},
 			{"cycle",  required_argument, 0, 'c'},
+			{"power_epoch", required_argument, 0, 'e'},
 			{"trace",  required_argument, 0, 't'},
 			{"util",  required_argument, 0, 'u'},
 			{"3D_architecture", required_argument, 0, 'a'},
-			{"num_grids_x", required_argument, 0, 'x'},
-			{"num_grids_y", required_argument, 0, 'y'},
+			{"mat_x", required_argument, 0, 'x'},
+			{"max_y", required_argument, 0, 'y'},
 			{"rwratio",  required_argument, 0, 'r'},
+			{"logicP_file", required_argument, 0, 'q'},
 			{"file",  required_argument, 0, 'f'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:t:u:a:x:y:r:f:h:k", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:f:h:k", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -185,6 +191,9 @@ int main(int argc, char **argv)
 			case 'c':
 				numSimCycles = atol(optarg);
 				break;
+			case 'e':
+				PowerEpoch = atol(optarg);
+				break;
 			case 't':
 				traceType = string(optarg);
 				if(traceType != "random" && traceType != "file") {
@@ -205,16 +214,24 @@ int main(int argc, char **argv)
 			    ARCH_SCHEME = atoi(optarg);
 				break;
 			case 'x':
-			    NUM_GRIDS_X = atoi(optarg);
+			    MAT_X = atoi(optarg);
 				break;
 			case 'y':
-			    NUM_GRIDS_Y = atoi(optarg);
+			    MAT_Y = atoi(optarg);
 				break;
 			case 'r':
 				rwRatio = atof(optarg);
 				if(rwRatio < 0 || rwRatio > 100) {
 					cout<<endl<<" == -r (--rwratio) ERROR ==";
 					cout<<endl<<"  This value is the percentage of reads in request stream"<<endl<<endl;
+					exit(0);
+				}
+				break;
+			case 'q':
+				logicPFileName = string(optarg);
+				if(access(logicPFileName.c_str(), 0) == -1){
+					cout<<endl<<" == -p (--logicP-file) ERROR ==";
+					cout<<endl<<"  There is no logicP file ["<<logicPFileName<<"]"<<endl<<endl;
 					exit(0);
 				}
 				break;
@@ -234,10 +251,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	std::cout << "Now, ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
-	cout << "Now: NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
-    cout << "Now: NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
-    cout << "tTSV = " << tTSV << endl;
+	//std::cout << "Now, ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
+	//cout << "Now: NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
+    //cout << "Now: NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
+    //cout << "tTSV = " << tTSV << endl;
 	
 	srand((unsigned)time(NULL));
 	casHMCWrapper = new CasHMCWrapper(calc_withLogic);

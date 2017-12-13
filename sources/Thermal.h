@@ -115,8 +115,9 @@ public:
 	double get_totalE();
 	double get_IOE();
 	// print accu_Pmap 
-	void printP(uint64_t cur_cycle); 
-	void print_logicP(uint64_t cur_cycle);
+	//void printP(uint64_t cur_cycle); 
+	void printP_new(uint64_t cur_cycle); 
+	//void print_logicP(uint64_t cur_cycle);
 	void printVaultUsage();
 	void genTotalP(bool accuP, uint64_t cur_cycle);
 	void ReadlogicP();
@@ -135,7 +136,7 @@ public:
 
 	// process the transient thermal simulation 
 	void save_sampleP(uint64_t cur_cycle, unsigned S_id);
-	void printSamplePower(uint64_t cur_cycle, unsigned S_id); // S_id -> sampling id of the current feature map
+	void printSamplePower2(uint64_t cur_cycle, unsigned S_id); // S_id -> sampling id of the current feature map
 	void printTtrans(unsigned S_id); 
 	void calculate_time_step();
 

@@ -962,12 +962,12 @@ void CasHMCWrapper::PrintFinalStatistic()
 
 void CasHMCWrapper::printAveragePower()
 {
-	ThermalCal.printP(currentClockCycle);
-	ThermalCal.print_logicP(currentClockCycle);
+	ThermalCal.printP_new(currentClockCycle);
+	//ThermalCal.print_logicP(currentClockCycle);
 	resultOut << "Total Power is: " << ThermalCal.get_totalE() / (double) currentClockCycle << endl;
 	resultOut << "Total I/O Power is: " << ThermalCal.get_IOE() / (double) currentClockCycle << endl;
 
-	ThermalCal.printVaultUsage();
+	//ThermalCal.printVaultUsage();
 	//resultOut << "Total Power is: " << ThermalCal.get_totalE();
 }
 
