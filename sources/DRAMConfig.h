@@ -16,7 +16,7 @@
 
 #include <math.h>		//ceil()
 
-static int MEMORY_DENSITY = 2;	//GB
+static int MEMORY_DENSITY = 4;	//GB
 static int NUM_VAULTS = 16;
 static int NUM_BANKS = 8;		//The number of banks per a vault(4GB:8 banks, 8GB:16 banks)
 static int NUM_ROWS = 16384;	//one bank size is 16MB
