@@ -4,9 +4,9 @@ version HMCTherm v1.0 - 2017.06.26
 
 ## 1. Developer 
 
-  Zhiyuan Yang__
-  Ankur Srivastava __
-  University of Maryland __
+  Zhiyuan Yang <br />
+  Ankur Srivastava <br />
+  University of Maryland <br />
   zyyang [at] umd [dot] edu
 
 ## 2. About HMCTherm
