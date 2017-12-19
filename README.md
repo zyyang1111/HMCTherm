@@ -22,21 +22,26 @@ version HMCTherm v1.0 - 2017.06.26
   A grid-based thermal solver is integrated to HMCTherm which is based on SuperLU\_MT (http://crd-legacy.lbl.gov/~xiaoye/SuperLU/). SuperLU is a general purpose library for the direct solution of large, sparse, nonsysmmetric systems of linear equations; and SuperLU\_MT is a version that enables multi-threaded computation. 
 
 
-3. Folder directory
+## 3. Folder Directory
+  - multi2sim_memtrace : architectural simulator
+  - McPAT : power simulator (McPAT)
+  - sources : source files for the HMC simulator 
+  - result : Log files for the HMC simulation 
+  - CPU\_power\_gen : MATLAB scripts generating interface scripts between the architectural simulator, HMC simulator and McPAT
+  - Example : containing benchmarks (splash2) and scripts for running the benchmarks
+  - script : containing python scripts for ploting final power and thermal profiles
 
-  graph : Gnuplot script file and a graph data file after a simulation run is over
-  result : Log files after a simulation run is over
-  sources : All HMCTherm source files
-  trace : The example of trace files (The files are extracted from SPEC CPU2006 benchmarks)
-  power_trace: power profile for each time step
-  temperature_trace: temperature profile for each time step 
+## 4. Usage 
 
-4. Build HMCTemp 
+### Dependency
+  The integrated grid-based thermal solver is based on SuperLU\_MT. SuperLU\_MT should be installed before installing HMCTemp. SuperLU\_MT can be downloaded from http://crd-legacy.lbl.gov/~xiaoye/SuperLU/ and following the instruction to install the library. 
 
-  (1) Dependency. 
-  The integrated grid-based thermal solver is based on SuperLU_MT (SuperLU for shared memory
-  parallel machines). SuperLU_MT should be installed before installing HMCTemp. SuperLU_MT 
-  can be downloaded from http://crd-legacy.lbl.gov/~xiaoye/SuperLU/
+### Installation
+  - (1) install the architectural simulator 
+  ```
+  $cd multi2sim_memtrace
+  $make
+  ```
 
   (2) Modify Makefile
   In Makefile, modify the SuperLUroot to the directory where SuperLU_MT is installed in your
