@@ -2,26 +2,25 @@
 HMCTherm: A Cycle-accurate Simulator for Hybrid Memory Cube with thermal analysis
 version HMCTherm v1.0 - 2017.06.26
 
-1. Developer 
+## 1. Developer 
 
   Zhiyuan Yang
   Ankur Srivastava 
   University of Maryland 
   zyyang [at] umd [dot] edu
 
-2. About HMCTherm
+## 2. About HMCTherm
 
-  HMCTherm is built based on CasHMC v1.2 (https://github.com/estwings57/CasHMC) which 
-  provides cycle-accurate simulation of every module in HMC and generates analysis 
-  results. HMCTherm adds a power-thermal module to CasHMC such that the power profile 
-  can be captured. After the simulation, HMCTherm can generate the steady-state 
-  temperature profile of the HMC. Given the time step, HMCTherm can provide transient 
-  thermal simulation. 
+  HMCTherm is a comprehensive simulation framework for Stacked-Memory-on-CPU architecture. Given the architectural description of multi-core CPUs and HMCs, HMCTherm can simulate the 3D thermal profile (both transient and static) of the HMC when a certain program is running. 
 
-  HMCTherm is basically implemented in C++. The integrated grid-based thermal solver is 
-  based on SuperLU that significantly speeds up the thermal simulation. HMCTherm can take
-  the power profile of the processor which is stacked with the HMC into the thermal 
-  simulation. The processor power profile is specified in logicP.in
+  HMCTherm is composed of: 
+  - An HMC (Hybrid-Memory-Cube) Simulator based on CasHMC v1.2 (https://github.com/estwings57/CasHMC) which takes memory traces as inputs and performs cycle-accurate simulation of HMC to get the delay, power and thermal information. 
+  - An architectural simulator for multi-core CPUs based on Multi2Sim (https://github.com/Multi2Sim/multi2sim) which performs architectural simulation and generates memory trace.
+  - A power simulator based on McPAT (https://github.com/HewlettPackard/mcpat)
+  - Other Shell script files which fulfill the interface between different simulators 
+
+  A grid-based thermal solver is integrated to HMCTherm which is based on SuperLU\_MT (http://crd-legacy.lbl.gov/~xiaoye/SuperLU/). SuperLU is a general purpose library for the direct solution of large, sparse, nonsysmmetric systems of linear equations; and SuperLU\_MT is a version that enables multi-threaded computation. 
+
 
 3. Folder directory
 
