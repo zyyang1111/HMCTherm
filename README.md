@@ -62,7 +62,7 @@ version HMCTherm v1.0 - 2017.06.26
   ```
   - (2) run the architectural simulation
   ```  
-  $ cd $(HMCThermROOT)/Example/FFT\_example/
+  $ cd $(HMCThermROOT)/Example/FFT_example/
   $ sh run.sh
   ```
   Please see here for details of the arguments of the architectural simulation. This simulation generates four output files: 
@@ -73,29 +73,29 @@ version HMCTherm v1.0 - 2017.06.26
 
    - (3) generate McPAT input files using pipeline.out, mem.out and net.out
    ``` 
-   $ cd $(HMCThermROOT)/CPU\_power\_gen/
-   $ matlab test\_m2s\_to\_mcpat.m
+   $ cd $(HMCThermROOT)/CPU_power_gen/
+   $ matlab test_m2s_to_mcpat.m
    ```
    This will generate mcpat.xml in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script.
 
    - (4) run McPAT
    ``` 
-   $ cd $(HMCThermROOT)/Example/FFT\_example/
+   $ cd $(HMCThermROOT)/Example/FFT_example/
    $ sh run_mcpat.sh
    ```
    This will generate mcpat.txt in $(HMCThermROOT)/Example/FFT\_example/.
 
    - (5) calculate the power profile for the multi-core CPU
    ```
-   $ cd $(HMCThermROOT)/CPU\_power\_gen/
-   $ matlab test\_mcpattxt\_to\_powermap.m
+   $ cd $(HMCThermROOT)/CPU_power_gen/
+   $ matlab test_mcpattxt_to_powermap.m
    ```
    This will generate an input file to the HMC simulator with the information of the CPU layer power profile. This input file (logicP.in) will be located in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script.
 
    - (6) run the HMC simulator
    ``` 
    $ cd $(HMCThermROOT)/
-   $ ./HMCTherm -c 400000 -t file -f ./Example/FFT\_example/mem\_trace.tr -x 1024 -y 1024 -q ./Example/FFT\_example/logicP.in -e 20000
+   $ ./HMCTherm -c 400000 -t file -f ./Example/FFT_example/mem_trace.tr -x 1024 -y 1024 -q ./Example/FFT_example/logicP.in -e 20000
    ```
    In this command: <br /> 
       **-c** indicates the number of CPU cycles to be simulated <br /> 
