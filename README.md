@@ -66,10 +66,10 @@ version HMCTherm v1.0 - 2017.06.26
   $ sh run.sh
   ```
   Please see here for details of the arguments of the architectural simulation. This simulation generates four output files: 
-    - pipeline.out : 
-    - mem.out : 
-    - net.out :
-    - mem_trace.tr : the trace of memory access
+    - **pipeline.out** : <br />
+    - **mem.out** : <br />
+    - **net.out** : <br />
+    - **mem_trace.tr** : the trace of memory access
 
    - (3) generate McPAT input files using pipeline.out, mem.out and net.out
    ``` 
@@ -98,18 +98,19 @@ version HMCTherm v1.0 - 2017.06.26
    $ ./HMCTherm -c 400000 -t file -f ./Example/FFT\_example/mem\_trace.tr -x 1024 -y 1024 -q ./Example/FFT\_example/logicP.in -e 20000
    ```
    In this command: <br /> 
-      -c indicates the number of CPU cycles to be simulated <br /> 
-      -t indicates whether the input memory trace is from a file (file) or generated randomly (random) <br />
-      -f if the memory trace is from a file, the trace file name is specified here <br />
-      -x and -y specifies the size (in byte) of a "mat" which is the smallest unit of memory [Default 512] <br />
-      -e is the time step to print out the transient temperature and power profile <br /> 
-      -h will print out the help of the HMC simulator <br /> 
+      **-c** indicates the number of CPU cycles to be simulated <br /> 
+      **-t** indicates whether the input memory trace is from a file (file) or generated randomly (random) <br />
+      **-f** if the memory trace is from a file, the trace file name is specified here <br />
+      **-x** and -y specifies the size (in byte) of a "mat" which is the smallest unit of memory [Default 512] <br />
+      **-e** is the time step to print out the transient temperature and power profile <br /> 
+      **-h** will print out the help of the HMC simulator <br /> 
 
    The HMC simulation will generate five output files: <br />
-      - /result/file.out : summary of the HMC latency <br /> 
-      - temperature\_trace.csv and power\_trace.csv : the temperature and power traces for each time step, respectively <br /> 
-      - Average_power.csv : the average power profile within the time of simulation <br />
-      - static_temperature.csv : the static thermal profile given the average power <br />
+      - **/result/file.out** : summary of the HMC latency <br /> 
+      - **temperature\_trace.csv** : the temperature traces for each time step <br /> 
+      - **power\_trace.csv** : the power traces for each time step <br />
+      - **Average_power.csv** : the average power profile within the time of simulation <br />
+      - **static_temperature.csv** : the static thermal profile given the average power <br />
    Please see here for more details of the usage of the HMC simulator and the specifications of each file.
 
    - (7) Plot the power and temperature profile using the python scripts in $(HMCThermROOT)/script/
