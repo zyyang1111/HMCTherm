@@ -65,7 +65,7 @@ version HMCTherm v1.0 - 2017.06.26
   $ cd $(HMCThermROOT)/Example/FFT_example/
   $ sh run.sh
   ```
-  Please see here for details of the arguments of the architectural simulation. This simulation generates four output files: 
+  Please see here for details of the arguments of the architectural simulation. This simulation generates four output files: <br />
     - **pipeline.out** : <br />
     - **mem.out** : <br />
     - **net.out** : <br />
