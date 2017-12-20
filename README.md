@@ -98,17 +98,17 @@ version HMCTherm v1.0 - 2017.06.26
    $ ./HMCTherm -c 400000 -t file -f ./Example/FFT\_example/mem\_trace.tr -x 1024 -y 1024 -q ./Example/FFT\_example/logicP.in -e 20000
    ```
    In this command: 
-      - -c indicates the number of CPU cycles to be simulated 
-      - -t indicates whether the input memory trace is from a file (file) or generated randomly (random)
-      - -f if the memory trace is from a file, the trace file name is specified here
-      - -x and -y specifies the size (in byte) of a "mat" which is the smallest unit of memory [Default 512]
-      - -e is the time step to print out the transient temperature and power profile 
-      - -h will print out the help of the HMC simulator 
+      -c indicates the number of CPU cycles to be simulated <br /> 
+      -t indicates whether the input memory trace is from a file (file) or generated randomly (random) <br />
+      -f if the memory trace is from a file, the trace file name is specified here <br />
+      -x and -y specifies the size (in byte) of a "mat" which is the smallest unit of memory [Default 512] <br />
+      -e is the time step to print out the transient temperature and power profile <br /> 
+      -h will print out the help of the HMC simulator <br /> 
    The HMC simulation will generate five output files:
-      - /result/file.out : summary of the HMC latency 
-      - temperature\_trace.csv and power\_trace.csv : the temperature and power traces for each time step, respectively 
-      - Average_power.csv : the average power profile within the time of simulation
-      - static_temperature.csv : the static thermal profile given the average power
+      - /result/file.out : summary of the HMC latency <br /> 
+      - temperature\_trace.csv and power\_trace.csv : the temperature and power traces for each time step, respectively <br /> 
+      - Average_power.csv : the average power profile within the time of simulation <br />
+      - static_temperature.csv : the static thermal profile given the average power <br />
    Please see here for more details of the usage of the HMC simulator and the specifications of each file.
 
    - (7) Plot the power and temperature profile using the python scripts in $(HMCThermROOT)/script/
