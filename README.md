@@ -39,29 +39,82 @@ version HMCTherm v1.0 - 2017.06.26
 ### Installation
   - (1) install the architectural simulator 
   ```
-  $cd multi2sim_memtrace
-  $make
-  ```
-
-  (2) Modify Makefile
-  In Makefile, modify the SuperLUroot to the directory where SuperLU_MT is installed in your
-  machine
-
-  (3) Install 
-  To build an HMCTherm
+  $ cd multi2sim_memtrace
   $ make
+  ```
+  - (2) install McPAT
+  ```
+  $ cd McPAT
+  $ make
+  ```
+  - (3) in the Makefile for the HMC simulator (under the root directory of HMCTherm), modify the SuperLUroot to where the SuperLU is installed in your local system 
 
-5. Running HMCTherm
-  
-  (1) Command line arguments
-  -c (--cycle)   : The number of CPU cycles to be simulated
-  -t (--trace)   : Trace type ('random' or 'file')
-  -u (--util)    : Requests frequency (0 = no requests, 1 = as fast as possible) [Default 0.1]
-  -r (--rwratio) : (%) The percentage of reads in request stream [Default 80]
-  -f (--file)    : Trace file name
-  -h (--help)    : Simulation option help
-  -x (--gridx)   : number of grids in a bank in x direction [Default 1]
-  -y (--gridy)   : number of grids in a bank in y direction [Default 1]
+  - (4) install the HMC simulator 
+  ``` 
+  $ make 
+  ```
+### Run your Simulation
+  In order to illustrate how HMCTherm works, we run FFT (./Example/splash2/codes/kernels/fft/) and plot the power and thermal profile of HMC. 
+  - (1) build FFT
+  ```
+  $ cd $(HMCThermROOT)/Example/splash2/codes/kernels/fft/
+  $ make
+  ```
+  - (2) run the architectural simulation
+  ```  
+  $ cd $(HMCThermROOT)/Example/FFT\_example/
+  $ sh run.sh
+  ```
+  Please see here for details of the arguments of the architectural simulation. This simulation generates four output files: 
+    - pipeline.out : 
+    - mem.out : 
+    - net.out :
+    - mem_trace.tr : the trace of memory access
 
-  (2) Example
-  $ ./HMCTherm -c 100000 -t random -u 0.1 -r 60 -x 4 -y 4
+   - (3) generate McPAT input files using pipeline.out, mem.out and net.out
+   ``` 
+   $ cd $(HMCThermROOT)/CPU\_power\_gen/
+   $ matlab test\_m2s\_to\_mcpat.m
+   ```
+   This will generate mcpat.xml in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script.
+
+   - (4) run McPAT
+   ``` 
+   $ cd $(HMCThermROOT)/Example/FFT\_example/
+   $ sh run_mcpat.sh
+   ```
+   This will generate mcpat.txt in $(HMCThermROOT)/Example/FFT\_example/.
+
+   - (5) calculate the power profile for the multi-core CPU
+   ```
+   $ cd $(HMCThermROOT)/CPU\_power\_gen/
+   $ matlab test\_mcpattxt\_to\_powermap.m
+   ```
+   This will generate an input file to the HMC simulator with the information of the CPU layer power profile. This input file (logicP.in) will be located in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script.
+
+   - (6) run the HMC simulator
+   ``` 
+   $ cd $(HMCThermROOT)/
+   $ ./HMCTherm -c 400000 -t file -f ./Example/FFT\_example/mem\_trace.tr -x 1024 -y 1024 -q ./Example/FFT\_example/logicP.in -e 20000
+   ```
+   In this command: 
+      - -c indicates the number of CPU cycles to be simulated 
+      - -t indicates whether the input memory trace is from a file (file) or generated randomly (random)
+      - -f if the memory trace is from a file, the trace file name is specified here
+      - -x and -y specifies the size (in byte) of a "mat" which is the smallest unit of memory [Default 512]
+      - -e is the time step to print out the transient temperature and power profile 
+      - -h will print out the help of the HMC simulator 
+   The HMC simulation will generate five output files:
+      - /result/file.out : summary of the HMC latency 
+      - temperature\_trace.csv and power\_trace.csv : the temperature and power traces for each time step, respectively 
+      - Average_power.csv : the average power profile within the time of simulation
+      - static_temperature.csv : the static thermal profile given the average power
+   Please see here for more details of the usage of the HMC simulator and the specifications of each file.
+
+   - (7) Plot the power and temperature profile using the python scripts in $(HMCThermROOT)/script/
+     - plot_trans.py : plot the transient power or temperature profile 
+     - plot_staticT.py : plot the static temperature profile
+     - plot_staticP.py : plot the average power profile
+
+
+
