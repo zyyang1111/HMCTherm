@@ -33,6 +33,7 @@ double rwRatio = 80;
 string traceType = "";
 string traceFileName = "";
 string logicPFileName = "";
+string resultdir = "";
 vector<Transaction *> transactionBuffers;
 CasHMCWrapper *casHMCWrapper;
 
@@ -162,13 +163,14 @@ int main(int argc, char **argv)
 			{"max_y", required_argument, 0, 'y'},
 			{"rwratio",  required_argument, 0, 'r'},
 			{"logicP_file", required_argument, 0, 'q'},
+			{"result_directory", required_argument, 0, 'd'},
 			{"file",  required_argument, 0, 'f'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:f:h:k", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:f:h:k", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -233,6 +235,15 @@ int main(int argc, char **argv)
 					cout<<endl<<" == -p (--logicP-file) ERROR ==";
 					cout<<endl<<"  There is no logicP file ["<<logicPFileName<<"]"<<endl<<endl;
 					exit(0);
+				}
+				break;
+			case 'd':
+				resultdir = string(optarg);
+				if(access(resultdir.c_str(), 0) == -1){
+					cout<<endl<<" == -d (--result-directory) ERROR ==";
+					cout<<endl<<"  The result directory is not specified ["<<logicPFileName<<"]"<<endl<<endl;
+					resultdir = "./"; 
+					//exit(0);
 				}
 				break;
 			case 'f':

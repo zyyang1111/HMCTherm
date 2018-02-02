@@ -19,6 +19,7 @@ extern "C" double *initialize_Temperature(double W, double Lc, int numP, int dim
 extern "C" double get_maxT(double *Tc, int Tsize);
 
 extern string logicPFileName; 
+extern string resultdir; 
 extern long PowerEpoch;
 
 ThermalCalculator::ThermalCalculator(bool withLogic_):
@@ -123,10 +124,17 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 		// IniTransPDN();
 
 		/* print the header for csv files */
+		power_trace_str = resultdir + "power_trace.csv"; 
+		temp_trace_str = resultdir + "temperature_trace.csv"; 
+		avg_power_str = resultdir + "Average_Power_Profile.csv";
+		final_temp_str = resultdir + "static_temperature.csv"; 
+		debug_power_resize_str = resultdir + "Debug_power_profile_resize.csv";
+		debug_power_str = resultdir + "Debug_power_profile.csv"; 
+
 		std::ofstream power_file; 
 		std::ofstream temp_file; 
-		power_file.open("power_trace.csv"); power_file << "S_id,layer,x,y,power\n"; power_file.close();
-		temp_file.open("temperature_trace.csv"); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
+		power_file.open(power_trace_str.c_str()); power_file << "S_id,layer,x,y,power\n"; power_file.close();
+		temp_file.open(temp_trace_str.c_str()); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
 	}
 
 ThermalCalculator::~ThermalCalculator()
@@ -372,7 +380,7 @@ void ThermalCalculator::printP_new(uint64_t cur_cycle){
 	genTotalP(true, cur_cycle);
 	uint64_t ElapsedCycle = cur_cycle; 
 	std::ofstream power_file; 
-	power_file.open("Average_Power_Profile.csv"); 
+	power_file.open(avg_power_str.c_str()); 
 	power_file << "layer_type,z,x,y,power,vault,bank\n";
 	for (int iz = 0; iz < z; iz ++){
 		for (int iy = 0; iy < y; iy ++){
@@ -437,7 +445,7 @@ void ThermalCalculator::printTtrans(unsigned S_id)
 
 	/////////////// print out to files ///////////////
 	std::ofstream temp_file; 
-	temp_file.open("temperature_trace.csv", std::ios_base::app); 
+	temp_file.open(temp_trace_str.c_str(), std::ios_base::app); 
 	for (int iz = 0; iz < numP; iz ++){
 		for (int iy = 0; iy < dimZ; iy ++){
 			for (int ix = 0; ix < dimX; ix ++){
@@ -452,7 +460,7 @@ void ThermalCalculator::printTtrans(unsigned S_id)
 void ThermalCalculator::printSamplePower2(uint64_t cur_cycle, unsigned S_id){
 	uint64_t ElapsedCycle = cur_cycle; 
 	std::ofstream power_file; 
-	power_file.open("power_trace.csv", std::ios_base::app);
+	power_file.open(power_trace_str.c_str(), std::ios_base::app);
 	if (withLogic){
 		for (int iz = 0; iz < z+2; iz ++){
 			for (int iy = 0; iy < y; iy ++){
@@ -480,7 +488,7 @@ void ThermalCalculator::printT()
 {
 	// print out the temperature profile calcualted using the accumulated power 
 	std::ofstream temp_file; 
-	temp_file.open("static_temperature.csv"); 
+	temp_file.open(final_temp_str.c_str()); 
 	temp_file << "layer,x,y,temperature\n"; 
 
 	int numlayer; 
@@ -530,7 +538,7 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 
 
 	std::ofstream power_file; 
-	power_file.open("Debug_power_profile_resize.csv"); 
+	power_file.open(debug_power_resize_str.c_str()); 
 	power_file << "x,y,power\n";
 	for (int i = 0; i < x; i ++){
 		for (int j = 0; j < y; j ++){
@@ -826,7 +834,7 @@ void ThermalCalculator::ReadlogicP()
 	cout << "totalpower = " << totalpower << endl;
 
 	std::ofstream power_file; 
-	power_file.open("Debug_power_profile.csv"); 
+	power_file.open(debug_power_str.c_str()); 
 	power_file << "x,y,power\n";
 	for (int i = 0; i < logicP_x; i ++){
 		for (int j = 0; j < logicP_y; j ++){

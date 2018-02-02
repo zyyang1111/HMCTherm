@@ -92,6 +92,14 @@ class ThermalCalculator
 	std::vector<double> V_offC; 
 	std::vector<double> I_offC; 
 
+	std::string power_trace_str; // complete path + file for power trace
+	std::string temp_trace_str; // complete path + file for temperature trace
+	std::string avg_power_str; // complete path + file for average power 
+	std::string final_temp_str; // complete path + file for static temperature 
+	std::string debug_power_resize_str; 
+	std::string debug_power_str; 
+
+
 
 public: 
 	ThermalCalculator(bool withLogic_);
