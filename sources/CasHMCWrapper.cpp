@@ -18,6 +18,7 @@ extern string traceType;				//Trace type ('random' or 'file')
 extern double memUtil;					//Frequency of requests - 0.0 = no requests, 1.0 = as fast as possible
 extern double rwRatio;					//(%) The percentage of reads in request stream
 extern string traceFileName;			//Trace file name
+extern string resultdir;
 
 namespace CasHMC
 {
@@ -76,7 +77,8 @@ ThermalCal(ThermalCalculator(withLogic_))
 	// Log files generation
 	//
 	int status = 1;
-	status = mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IWOTH | S_IXOTH);
+	string result_file_str = resultdir + "result"; 
+	status = mkdir(result_file_str.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IWOTH | S_IXOTH);
 	
 	time_t now;
     struct tm t;
@@ -118,7 +120,8 @@ ThermalCal(ThermalCalculator(withLogic_))
 	}
 	
 	if(status == 0)
-		logName = "result/CasHMC";
+		//logName = "result/CasHMC";
+		logName = result_file_str + "/CasHMC"; 
 	else
 		logName = "CasHMC";
 
