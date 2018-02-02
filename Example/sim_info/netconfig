@@ -1,0 +1,947 @@
+[Network.net-l1-l2]
+DefaultInputBufferSize = 1152
+DefaultOutputBufferSize = 1152
+DefaultBandwidth = 128
+
+[Network.net-l1-l2.Node.sw0]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw1]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw2]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw3]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw4]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw5]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw6]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw7]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw8]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw9]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw10]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw11]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw12]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw13]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw14]
+Type = Switch
+
+[Network.net-l1-l2.Node.sw15]
+Type = Switch
+
+[Network.net-l1-l2.Node.top0]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top1]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top2]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top3]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top4]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top5]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top6]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top7]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top8]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top9]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top10]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top11]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top12]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top13]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top14]
+Type = EndNode
+
+[Network.net-l1-l2.Node.top15]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata0]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata1]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata2]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata3]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata4]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata5]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata6]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata7]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata8]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata9]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata10]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata11]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata12]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata13]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata14]
+Type = EndNode
+
+[Network.net-l1-l2.Node.topdata15]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom0]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom1]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom2]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom3]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom4]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom5]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom6]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom7]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom8]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom9]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom10]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom11]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom12]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom13]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom14]
+Type = EndNode
+
+[Network.net-l1-l2.Node.bottom15]
+Type = EndNode
+
+[Network.net-l1-l2.Link.sw0-top0]
+Source = sw0
+Dest = top0
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw1-top1]
+Source = sw1
+Dest = top1
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw2-top2]
+Source = sw2
+Dest = top2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw3-top3]
+Source = sw3
+Dest = top3
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw4-top4]
+Source = sw4
+Dest = top4
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw5-top5]
+Source = sw5
+Dest = top5
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw6-top6]
+Source = sw6
+Dest = top6
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw7-top7]
+Source = sw7
+Dest = top7
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw8-top8]
+Source = sw8
+Dest = top8
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw9-top9]
+Source = sw9
+Dest = top9
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw10-top10]
+Source = sw10
+Dest = top10
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw11-top11]
+Source = sw11
+Dest = top11
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw12-top12]
+Source = sw12
+Dest = top12
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw13-top13]
+Source = sw13
+Dest = top13
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw14-top14]
+Source = sw14
+Dest = top14
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw15-top15]
+Source = sw15
+Dest = top15
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw0-topdata0]
+Source = sw0
+Dest = topdata0
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw1-topdata1]
+Source = sw1
+Dest = topdata1
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw2-topdata2]
+Source = sw2
+Dest = topdata2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw3-topdata3]
+Source = sw3
+Dest = topdata3
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw4-topdata4]
+Source = sw4
+Dest = topdata4
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw5-topdata5]
+Source = sw5
+Dest = topdata5
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw6-topdata6]
+Source = sw6
+Dest = topdata6
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw7-topdata7]
+Source = sw7
+Dest = topdata7
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw8-topdata8]
+Source = sw8
+Dest = topdata8
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw9-topdata9]
+Source = sw9
+Dest = topdata9
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw10-topdata10]
+Source = sw10
+Dest = topdata10
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw11-topdata11]
+Source = sw11
+Dest = topdata11
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw12-topdata12]
+Source = sw12
+Dest = topdata12
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw13-topdata13]
+Source = sw13
+Dest = topdata13
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw14-topdata14]
+Source = sw14
+Dest = topdata14
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw15-topdata15]
+Source = sw15
+Dest = topdata15
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw0-bottom0]
+Source = sw0
+Dest = bottom0
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw1-bottom1]
+Source = sw1
+Dest = bottom1
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw2-bottom2]
+Source = sw2
+Dest = bottom2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw3-bottom3]
+Source = sw3
+Dest = bottom3
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw4-bottom4]
+Source = sw4
+Dest = bottom4
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw5-bottom5]
+Source = sw5
+Dest = bottom5
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw6-bottom6]
+Source = sw6
+Dest = bottom6
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw7-bottom7]
+Source = sw7
+Dest = bottom7
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw8-bottom8]
+Source = sw8
+Dest = bottom8
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw9-bottom9]
+Source = sw9
+Dest = bottom9
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw10-bottom10]
+Source = sw10
+Dest = bottom10
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw11-bottom11]
+Source = sw11
+Dest = bottom11
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw12-bottom12]
+Source = sw12
+Dest = bottom12
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw13-bottom13]
+Source = sw13
+Dest = bottom13
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw14-bottom14]
+Source = sw14
+Dest = bottom14
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw15-bottom15]
+Source = sw15
+Dest = bottom15
+Type = Bidirectional
+
+;;;;;;horizontal links
+
+[Network.net-l1-l2.Node.sw0-sw1-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw0-sw1-dummylink1]
+Source = sw0
+Dest = sw0-sw1-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw0-sw1-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw0-sw1-dummylink2]
+Source = sw0-sw1-dummy1
+Dest = sw0-sw1-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw0-sw1-dummylink3]
+Source = sw0-sw1-dummy2
+Dest = sw1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw0-sw4-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw0-sw4-dummylink1]
+Source = sw0
+Dest = sw0-sw4-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw0-sw4-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw0-sw4-dummylink2]
+Source = sw0-sw4-dummy1
+Dest = sw0-sw4-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw0-sw4-dummylink3]
+Source = sw0-sw4-dummy2
+Dest = sw4
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw1-sw2-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw1-sw2-dummylink1]
+Source = sw1
+Dest = sw1-sw2-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw1-sw2-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw1-sw2-dummylink2]
+Source = sw1-sw2-dummy1
+Dest = sw1-sw2-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw1-sw2-dummylink3]
+Source = sw1-sw2-dummy2
+Dest = sw2
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw1-sw5-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw1-sw5-dummylink1]
+Source = sw1
+Dest = sw1-sw5-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw1-sw5-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw1-sw5-dummylink2]
+Source = sw1-sw5-dummy1
+Dest = sw1-sw5-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw1-sw5-dummylink3]
+Source = sw1-sw5-dummy2
+Dest = sw5
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw2-sw3-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw2-sw3-dummylink1]
+Source = sw2
+Dest = sw2-sw3-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw2-sw3-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw2-sw3-dummylink2]
+Source = sw2-sw3-dummy1
+Dest = sw2-sw3-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw2-sw3-dummylink3]
+Source = sw2-sw3-dummy2
+Dest = sw3
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw2-sw6-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw2-sw6-dummylink1]
+Source = sw2
+Dest = sw2-sw6-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw2-sw6-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw2-sw6-dummylink2]
+Source = sw2-sw6-dummy1
+Dest = sw2-sw6-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw2-sw6-dummylink3]
+Source = sw2-sw6-dummy2
+Dest = sw6
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw3-sw7-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw3-sw7-dummylink1]
+Source = sw3
+Dest = sw3-sw7-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw3-sw7-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw3-sw7-dummylink2]
+Source = sw3-sw7-dummy1
+Dest = sw3-sw7-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw3-sw7-dummylink3]
+Source = sw3-sw7-dummy2
+Dest = sw7
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw4-sw5-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw4-sw5-dummylink1]
+Source = sw4
+Dest = sw4-sw5-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw4-sw5-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw4-sw5-dummylink2]
+Source = sw4-sw5-dummy1
+Dest = sw4-sw5-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw4-sw5-dummylink3]
+Source = sw4-sw5-dummy2
+Dest = sw5
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw4-sw8-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw4-sw8-dummylink1]
+Source = sw4
+Dest = sw4-sw8-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw4-sw8-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw4-sw8-dummylink2]
+Source = sw4-sw8-dummy1
+Dest = sw4-sw8-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw4-sw8-dummylink3]
+Source = sw4-sw8-dummy2
+Dest = sw8
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw5-sw6-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw5-sw6-dummylink1]
+Source = sw5
+Dest = sw5-sw6-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw5-sw6-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw5-sw6-dummylink2]
+Source = sw5-sw6-dummy1
+Dest = sw5-sw6-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw5-sw6-dummylink3]
+Source = sw5-sw6-dummy2
+Dest = sw6
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw5-sw9-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw5-sw9-dummylink1]
+Source = sw5
+Dest = sw5-sw9-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw5-sw9-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw5-sw9-dummylink2]
+Source = sw5-sw9-dummy1
+Dest = sw5-sw9-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw5-sw9-dummylink3]
+Source = sw5-sw9-dummy2
+Dest = sw9
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw6-sw7-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw6-sw7-dummylink1]
+Source = sw6
+Dest = sw6-sw7-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw6-sw7-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw6-sw7-dummylink2]
+Source = sw6-sw7-dummy1
+Dest = sw6-sw7-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw6-sw7-dummylink3]
+Source = sw6-sw7-dummy2
+Dest = sw7
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw6-sw10-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw6-sw10-dummylink1]
+Source = sw6
+Dest = sw6-sw10-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw6-sw10-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw6-sw10-dummylink2]
+Source = sw6-sw10-dummy1
+Dest = sw6-sw10-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw6-sw10-dummylink3]
+Source = sw6-sw10-dummy2
+Dest = sw10
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw7-sw11-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw7-sw11-dummylink1]
+Source = sw7
+Dest = sw7-sw11-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw7-sw11-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw7-sw11-dummylink2]
+Source = sw7-sw11-dummy1
+Dest = sw7-sw11-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw7-sw11-dummylink3]
+Source = sw7-sw11-dummy2
+Dest = sw11
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw8-sw9-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw8-sw9-dummylink1]
+Source = sw8
+Dest = sw8-sw9-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw8-sw9-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw8-sw9-dummylink2]
+Source = sw8-sw9-dummy1
+Dest = sw8-sw9-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw8-sw9-dummylink3]
+Source = sw8-sw9-dummy2
+Dest = sw9
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw8-sw12-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw8-sw12-dummylink1]
+Source = sw8
+Dest = sw8-sw12-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw8-sw12-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw8-sw12-dummylink2]
+Source = sw8-sw12-dummy1
+Dest = sw8-sw12-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw8-sw12-dummylink3]
+Source = sw8-sw12-dummy2
+Dest = sw12
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw9-sw10-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw9-sw10-dummylink1]
+Source = sw9
+Dest = sw9-sw10-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw9-sw10-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw9-sw10-dummylink2]
+Source = sw9-sw10-dummy1
+Dest = sw9-sw10-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw9-sw10-dummylink3]
+Source = sw9-sw10-dummy2
+Dest = sw10
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw9-sw13-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw9-sw13-dummylink1]
+Source = sw9
+Dest = sw9-sw13-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw9-sw13-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw9-sw13-dummylink2]
+Source = sw9-sw13-dummy1
+Dest = sw9-sw13-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw9-sw13-dummylink3]
+Source = sw9-sw13-dummy2
+Dest = sw13
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw10-sw11-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw10-sw11-dummylink1]
+Source = sw10
+Dest = sw10-sw11-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw10-sw11-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw10-sw11-dummylink2]
+Source = sw10-sw11-dummy1
+Dest = sw10-sw11-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw10-sw11-dummylink3]
+Source = sw10-sw11-dummy2
+Dest = sw11
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw10-sw14-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw10-sw14-dummylink1]
+Source = sw10
+Dest = sw10-sw14-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw10-sw14-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw10-sw14-dummylink2]
+Source = sw10-sw14-dummy1
+Dest = sw10-sw14-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw10-sw14-dummylink3]
+Source = sw10-sw14-dummy2
+Dest = sw14
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw11-sw15-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw11-sw15-dummylink1]
+Source = sw11
+Dest = sw11-sw15-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw11-sw15-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw11-sw15-dummylink2]
+Source = sw11-sw15-dummy1
+Dest = sw11-sw15-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw11-sw15-dummylink3]
+Source = sw11-sw15-dummy2
+Dest = sw15
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw12-sw13-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw12-sw13-dummylink1]
+Source = sw12
+Dest = sw12-sw13-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw12-sw13-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw12-sw13-dummylink2]
+Source = sw12-sw13-dummy1
+Dest = sw12-sw13-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw12-sw13-dummylink3]
+Source = sw12-sw13-dummy2
+Dest = sw13
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw13-sw14-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw13-sw14-dummylink1]
+Source = sw13
+Dest = sw13-sw14-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw13-sw14-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw13-sw14-dummylink2]
+Source = sw13-sw14-dummy1
+Dest = sw13-sw14-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw13-sw14-dummylink3]
+Source = sw13-sw14-dummy2
+Dest = sw14
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw14-sw15-dummy1]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw14-sw15-dummylink1]
+Source = sw14
+Dest = sw14-sw15-dummy1
+Type = Bidirectional
+
+[Network.net-l1-l2.Node.sw14-sw15-dummy2]
+Type = Switch
+
+[Network.net-l1-l2.Link.sw14-sw15-dummylink2]
+Source = sw14-sw15-dummy1
+Dest = sw14-sw15-dummy2
+Type = Bidirectional
+
+[Network.net-l1-l2.Link.sw14-sw15-dummylink3]
+Source = sw14-sw15-dummy2
+Dest = sw15
+Type = Bidirectional
+
+;;;;;;vertical links
+
+;;;;;;multilayer links
+

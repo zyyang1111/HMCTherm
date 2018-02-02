@@ -29,7 +29,7 @@ REBUILDABLES=$(OBJ) $(EXE_NAME)
 all: ${EXE_NAME}
 
 #   $@ target name, $^ target deps, $< matched pattern
-$(EXE_NAME): $(OBJ) thermal_solver.o sp_ienv.o PDN_solver.o
+$(EXE_NAME): $(OBJ) $(SRCDIR)/thermal_solver.o $(SRCDIR)/PDN_solver.o 
 	$(CXX) $(LINK_FLAGS) -o $@ $^ $(LIBS) -lpthread -lm
 	@echo "Built $@ successfully" 
 
@@ -44,16 +44,17 @@ $(EXE_NAME): $(OBJ) thermal_solver.o sp_ienv.o PDN_solver.o
 %.o : %.cpp
 	g++ $(CXXFLAGS) -o $@ -c $<
 
-thermal_solver.o: $(SRCDIR)/thermal_solver.c
-	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -c $(SRCDIR)/thermal_solver.c 
+$(SRCDIR)/thermal_solver.o: $(SRCDIR)/thermal_solver.c
+	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -o $@ -c $< 
 
-PDN_solver.o: $(SRCDIR)/PDN_solver.c
-	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -c $(SRCDIR)/PDN_solver.c 
+$(SRCDIR)/PDN_solver.o: $(SRCDIR)/PDN_solver.c
+	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -o $@ -c $< 
 
-sp_ienv.o: $(SRCDIR)/sp_ienv.c
-	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -c $(SRCDIR)/sp_ienv.c
+$(SRCDIR)/sp_ienv.o: $(SRCDIR)/sp_ienv.c
+	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -o $@ -c $< 
 
 clean: 
-	-rm -f ${REBUILDABLES} $(SRCDIR)/*.dep ./result/*.log *.out *.csv ./power_trace/*.csv ./temperature_trace/*.csv thermal_solver.o sp_ienv.o PDN_solver.o
+	-rm -f ${REBUILDABLES} $(SRCDIR)/*.dep ./result/*.log *.out *.csv ./power_trace/*.csv ./temperature_trace/*.csv $(SRCDIR)/*.o
+
 remove:
 	-rm -f ./result/*.log *.out *.csv ./power_trace/*.csv ./temperature_trace/*.csv

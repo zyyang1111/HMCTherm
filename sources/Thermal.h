@@ -92,6 +92,14 @@ class ThermalCalculator
 	std::vector<double> V_offC; 
 	std::vector<double> I_offC; 
 
+	std::string power_trace_str; // complete path + file for power trace
+	std::string temp_trace_str; // complete path + file for temperature trace
+	std::string avg_power_str; // complete path + file for average power 
+	std::string final_temp_str; // complete path + file for static temperature 
+	std::string debug_power_resize_str; 
+	std::string debug_power_str; 
+
+
 
 public: 
 	ThermalCalculator(bool withLogic_);
@@ -115,8 +123,9 @@ public:
 	double get_totalE();
 	double get_IOE();
 	// print accu_Pmap 
-	void printP(uint64_t cur_cycle); 
-	void print_logicP(uint64_t cur_cycle);
+	//void printP(uint64_t cur_cycle); 
+	void printP_new(uint64_t cur_cycle); 
+	//void print_logicP(uint64_t cur_cycle);
 	void printVaultUsage();
 	void genTotalP(bool accuP, uint64_t cur_cycle);
 	void ReadlogicP();
@@ -135,7 +144,7 @@ public:
 
 	// process the transient thermal simulation 
 	void save_sampleP(uint64_t cur_cycle, unsigned S_id);
-	void printSamplePower(uint64_t cur_cycle, unsigned S_id); // S_id -> sampling id of the current feature map
+	void printSamplePower2(uint64_t cur_cycle, unsigned S_id); // S_id -> sampling id of the current feature map
 	void printTtrans(unsigned S_id); 
 	void calculate_time_step();
 
