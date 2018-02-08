@@ -13,6 +13,10 @@
 #include <stdlib.h>		//exit(0)
 #include <fstream>		//ofstream
 #include <vector>		//vector
+#include <signal.h>    // yzy: used for handle Ctrl+C exception 
+#include <unistd.h>    // yzy: used for handle Ctrl+C exception 
+#include <cstring>     // yzy: used for handle Ctrl+C exception 
+#include <atomic>      // yzy: used for handle Ctrl+C exception 
 
 #include "CasHMCWrapper.h"
 #include "Transaction.h"
@@ -33,9 +37,19 @@ double rwRatio = 80;
 string traceType = "";
 string traceFileName = "";
 string logicPFileName = "";
+string RTFileName = "";
 string resultdir = "";
 vector<Transaction *> transactionBuffers;
 CasHMCWrapper *casHMCWrapper;
+
+// yzy : 2/7/2018
+// handle ctrl+C exeption
+atomic<bool> quit(false);  // signal flag
+
+void got_signal(int)
+{
+	quit.store(true); 
+}
 
 void help()
 {
@@ -147,6 +161,16 @@ int main(int argc, char **argv)
 	bool pendingTran = false;
 	bool calc_withLogic = true;
 
+	// yzy : 2/7/2018
+	// handle ctrl+C exeption
+	struct sigaction sa; 
+	memset( &sa, 0, sizeof(sa) );
+	sa.sa_handler = got_signal; 
+	sigfillset(&sa.sa_mask); 
+	sigaction(SIGINT, &sa, NULL); 
+
+
+
     //std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
     //cout << "NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
     //cout << "NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
@@ -164,13 +188,14 @@ int main(int argc, char **argv)
 			{"rwratio",  required_argument, 0, 'r'},
 			{"logicP_file", required_argument, 0, 'q'},
 			{"result_directory", required_argument, 0, 'd'},
+			{"DRAM_refresh_file", required_argument, 0, 's'},
 			{"file",  required_argument, 0, 'f'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:f:h:k", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:h:k", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -241,8 +266,16 @@ int main(int argc, char **argv)
 				resultdir = string(optarg);
 				if(access(resultdir.c_str(), 0) == -1){
 					cout<<endl<<" == -d (--result-directory) ERROR ==";
-					cout<<endl<<"  The result directory is not specified ["<<logicPFileName<<"]"<<endl<<endl;
+					cout<<endl<<"  The result directory is not specified ["<<resultdir<<"]"<<endl<<endl;
 					resultdir = "./"; 
+					//exit(0);
+				}
+				break;
+			case 's':
+				RTFileName = string(optarg);
+				if(access(RTFileName.c_str(), 0) == -1){
+					cout<<endl<<" == -d (--DRAM-refresh-file) ERROR ==";
+					cout<<endl<<"  The DRAM refresh file is not specified ["<<RTFileName<<"]"<<endl<<endl;
 					//exit(0);
 				}
 				break;
@@ -330,6 +363,15 @@ int main(int argc, char **argv)
 			}
 			//cout << "cpuCycle = " << cpuCycle << "; total num Sim Cycles = " << numSimCycles << "   "; 
 			casHMCWrapper->Update();
+
+			if (quit.load())
+			{
+				//casHMCWrapper->CalcFinalT();
+				//transactionBuffers.clear();
+				//delete casHMCWrapper;
+				//casHMCWrapper = NULL;
+				break;
+			}
 		}
 	}
 

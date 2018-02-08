@@ -37,6 +37,7 @@
 #include "PDNConfig.h"
 #include <vector>
 #include <iostream>
+#include "RefreshControl.h"
 
 namespace CasHMC
 {
@@ -57,6 +58,10 @@ class ThermalCalculator
 	std::vector<std::vector<std::vector<double> > > cur_Pmap_wLogic;
 	std::vector<int> vault_usage_single;
 	std::vector<int> vault_usage_multi; 
+	std::vector<int> bank_usage_single; 
+	std::vector<int> layerP_;
+
+	int num_refresh;
 
 	// temperature variable 
 	double **Midx; // Midx storing conductance 
@@ -67,7 +72,7 @@ class ThermalCalculator
 	double *T_trans; // for storage, I only use a vector to store the transient temperature 
 
 	// logic power parameters 
-	int logicP_x, logicP_y; 
+	int logicP_x, logicP_y, logicP_z; 
 	std::vector<std::vector<double> > logicP_map; 
 
 	// transient control parameters
@@ -109,11 +114,12 @@ public:
     /*                   MEHTODS FOR ACQURING THE POWER                    */
     /***********************************************************************/
 
-
+	void addPower_refresh(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle);
 	void addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle); 
 	void addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle);
 	int square_array(int total_grids_);
 	void mapPhysicalLocation(unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, int *layer, int *row, int *col);
+    void rev_mapPhysicalLocation(int *vault_id_, int *bank_id_, int *row_s, int *row_e, int layer, int row, int col);
     
     // for determining the size of the power map by the external methods
 	int get_x(); 
@@ -164,6 +170,12 @@ public:
     void IniTransPDN();
     void TransPDNsolver();
 
+    /***********************************************************************/
+    /*                   Any Dynamic Management Modules                    */
+    /***********************************************************************/
+    RFControl RefreshCont; 
+    void UpdateRefreshCont(); 
+    void printRT(unsigned S_id);
 
 };
 

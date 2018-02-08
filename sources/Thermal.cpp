@@ -8,6 +8,7 @@
 
 
 
+
 using namespace std; 
 using namespace CasHMC; 
 
@@ -24,10 +25,12 @@ extern long PowerEpoch;
 
 ThermalCalculator::ThermalCalculator(bool withLogic_):
 	totalEnergy(0.0),
+	num_refresh(0),
 	sampleEnergy(0.0),
 	pe_crit(false),
 	sample_id(0),
-	withLogic(withLogic_)
+	withLogic(withLogic_),
+	RefreshCont(RFControl())
 	{
 		power_epoch = PowerEpoch; 
 		std::cout << "enter the assignment method\n";
@@ -189,8 +192,40 @@ int ThermalCalculator::square_array(int total_grids_)
 	return x_re; 
 }
 
+void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
+{
+	cout << "addPower_refresh\n";
+	num_refresh ++;
+	if (cur_cycle > (sample_id+1) * power_epoch)
+	{
+		save_sampleP(cur_cycle, sample_id); 
+		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
+		sampleEnergy = 0; 
+		sample_id = sample_id + 1; 
+	}
+	totalEnergy += energy_t_ * Vdd / 1000.0;
+    sampleEnergy += energy_t_ * Vdd / 1000.0;
+    
+    vault_usage_multi[vault_id_] ++; 
+    double energy; 
+    int ref_layer = 0, ref_row_phy = 0, ref_col_phy = 0; 
+    if (ARCH_SCHEME == 1)
+    {
+    	energy = energy_t_ / (REFRESH_ROWNUM); 
+    	for (int i = 0; i < REFRESH_ROWNUM; i ++)
+    	{
+    		mapPhysicalLocation(vault_id_, bank_id_, row_id_+i, col_id_, &ref_layer, &ref_row_phy, &ref_col_phy);
+    		accu_Pmap[ref_row_phy][ref_col_phy][ref_layer] += energy * Vdd / 1000.0;
+    		cur_Pmap[ref_row_phy][ref_col_phy][ref_layer] += energy * Vdd / 1000.0;
+    	}
+    }
+
+}
+
+
 void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle)
 {
+	//cout << "addPower\n";
 
 	//std::cout << "energy = " << energy_t_ << std::endl; 
 	//std::cout << "(vault, bank, row, col) = " << "( " << vault_id_ << ", " << bank_id_ << ", " << row_id_ << ", " << col_id_ << " )" << std::endl;
@@ -322,6 +357,35 @@ void ThermalCalculator::addIOPower(double energy_t_, unsigned vault_id_, unsigne
 		}
 	}
 }
+
+
+void ThermalCalculator::rev_mapPhysicalLocation(int *vault_id_, int *bank_id_, int *row_s, int *row_e, int layer, int row, int col)
+{
+	// currently only support ARCH_SCHEME 1 
+	if (ARCH_SCHEME == 1)
+	{
+		int grid_step = NUM_ROWS / (NUM_GRIDS_X * NUM_GRIDS_Y);
+		int num_bank_per_layer = NUM_BANKS / NUM_LAYERS;  
+		int bx = row / NUM_GRIDS_X; 
+		int by = col / NUM_GRIDS_Y; 
+		int vx = bx / bank_x; 
+		int vy = by / bank_y; 
+		// get the vault id
+		*vault_id_ = vx * vault_y + vy; 
+
+		// get the bank id
+		int bank_same_layer = (bx % bank_x)* bank_y + (by % bank_y); 
+		*bank_id_ = layer * num_bank_per_layer + bank_same_layer; 
+
+		// get the row id
+		int grid_id = (row % NUM_GRIDS_X) * NUM_GRIDS_Y + (col % NUM_GRIDS_Y); 
+		*row_s = grid_id * grid_step; 
+		*row_e = (grid_id+1) * grid_step; 
+	}
+	else
+		cout << "Currently Only Support ARCH_SCHEME = 1\n";
+}
+
 
 
 void ThermalCalculator::mapPhysicalLocation(unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, int *layer, int *row, int *col)
@@ -526,7 +590,7 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 	/* accuP = true: calculate for the accumulative power */
 	/* accuP = false: calculate for the transient power */
  
-	std::cout << "come in the genTotalP\n";
+	std::cout << "\ncome in the genTotalP\n";
 
 	double logicE, cellE_ratio, cellE; 
 	uint64_t ElapsedCycle = cur_cycle; 
@@ -675,7 +739,6 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 	/* Also, the current transient temperature is written to the file */
 
 
-
 	genTotalP(false, power_epoch); 
 	printSamplePower2(power_epoch, S_id); 
 
@@ -689,6 +752,10 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 	printTtrans(S_id);
 	////// calculate the transient PDN //////////////
 	//TransPDNsolver();
+
+	/////////////// Update the Dynamic Management Information ///////////////
+	cout << "num_refresh = " << num_refresh << endl;
+	UpdateRefreshCont(); 
 
 
 }
@@ -772,7 +839,11 @@ void ThermalCalculator::calcMidx()
 	W = grid_size * (double) dimX; 
 	L = grid_size * (double) dimZ; */
 
-	
+	layerP_ = vector<int> (numP, 0);
+	for(int l = 0; l < numP; l++)
+        layerP_[l] = l * 3;
+
+
 
 	Midx = calculate_Midx_array(ChipX, ChipZ, numP, dimX, dimZ, &MidxSize);
 	Cap = calculate_Cap_array(ChipX, ChipZ, numP, dimX, dimZ, &CapSize);
@@ -821,6 +892,8 @@ void ThermalCalculator::ReadlogicP()
 
 	filein >> logicP_x; 
 	filein >> logicP_y; 
+	filein >> logicP_z; 
+	cout << "logicP_z = " << logicP_z << endl;
 	logicP_map = vector<vector<double> > (logicP_x, vector<double> (logicP_y, 0));
 	for (int j = 0; j < logicP_y; j ++)
 		for (int i = 0; i < logicP_x; i ++)
@@ -865,4 +938,52 @@ double ThermalCalculator::get_totalE()
 double ThermalCalculator::get_IOE()
 {
 	return IOEnergy;
+}
+
+/* Methods for the Dynamic Management */
+void ThermalCalculator::UpdateRefreshCont()
+{
+	int vid, bid, rid_s, rid_e; 
+	double T_local; 
+
+	for (int ix = 0; ix < x; ix ++){
+		for (int iy = 0; iy < y; iy ++){
+			for (int iz = 0; iz < z; iz ++){
+				T_local = T_trans[x*y*(layerP_[iz]+1) + iy*x + ix] - T0; 
+				//cout << "\rT = " << T_local << flush; 
+				rev_mapPhysicalLocation(&vid, &bid, &rid_s, &rid_e, iz, ix, iy);
+				RefreshCont.UpdateRetT(vid, bid, rid_s, rid_e, T_local);
+			}
+		}
+	}
+	//cout << endl;
+}
+
+void ThermalCalculator::printRT(unsigned S_id)
+{
+	std::ostringstream file_oss; 
+	std::ofstream RT_file;
+
+	file_oss << "./power_trace/RT_sample_" << S_id << ".csv";
+	std::string file_name_str = file_oss.str();
+	file_oss.str("");
+	char* file_name = new char[file_name_str.size() + 1]; 
+	std::copy(file_name_str.begin(), file_name_str.end(), file_name); 
+	file_name[file_name_str.size()] = '\0';
+	RT_file.open(file_name); 
+
+	for (int iv = 0; iv < NUM_VAULTS; iv ++){
+		for (int ib = 0; ib < NUM_BANKS; ib ++){
+			for (int ir = 0; ir < NUM_ROWS; ir ++){
+				RT_file << RefreshCont.RetTCountDown[iv][ib][ir]; 
+				if (ir < NUM_ROWS - 1)
+					RT_file << ",";
+			}
+			if (ib < NUM_BANKS - 1)
+				RT_file << ",";
+		}
+		RT_file << endl;
+	}
+	RT_file.close();
+
 }

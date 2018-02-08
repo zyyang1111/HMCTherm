@@ -56,8 +56,9 @@ DRAM::~DRAM()
 void DRAM::receiveCMD(DRAMCommand *recvCMD)
 {
     int layer, x, y; // 3D physial locations
-    unsigned vault_id, bank_id, row_id, col_id; // memory address, readable convenience 
+    unsigned vault_id, bank_id, row_id, col_id, row_id_refresh; // memory address, readable convenience 
     double energy_t = 0.0;
+    int refresh_epoch;
 
     vault_id = vaultContP->vaultContID; 
     bank_id = recvCMD->bank;
@@ -188,15 +189,43 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			delete recvCMD;
 			break;	
 		case REFRESH:
+			//cout << "Hey I am here in REFRESH!\n";
+			refresh_epoch = (long)((currentClockCycle-100)/(REFRESH_PERIOD/tCK))% (NUM_ROWS / REFRESH_ROWNUM);
+			row_id_refresh = refresh_epoch * REFRESH_ROWNUM; 
+			cout << "\rrow_id_refresh = " << row_id_refresh; 
+
             energy_t = ((double)IDD5 - (double)IDD3N) * (double)tRFC;
 
 			for(int b=0; b<NUM_BANKS; b++) {
-				thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle); 
+				bool refresh_flag = false; 
+				for (int ir = row_id_refresh; ir < row_id_refresh+REFRESH_ROWNUM; ir ++){
+					if (thermalCalPtr->RefreshCont.UpdateCountD(vault_id, b, ir)){
+						//cout << "refresh!\n";
+						refresh_flag = true; 
+						//cout << "Issue refresh\n";
+						break;
+					}
+				}
+				if (refresh_flag){
+					for (int ir = row_id_refresh; ir < row_id_refresh+REFRESH_ROWNUM; ir ++){
+						thermalCalPtr->RefreshCont.ResetCountD(vault_id, b, ir);
+					}
+					thermalCalPtr->addPower_refresh(energy_t, vault_id, b, row_id_refresh, 0, currentClockCycle); 
 
-				bankStates[b]->nextActivate = currentClockCycle + tRFC;
-				bankStates[b]->currentBankState = REFRESHING;
-				bankStates[b]->lastCommand = REFRESH;
-				bankStates[b]->stateChangeCountdown = tRFC;
+					bankStates[b]->nextActivate = currentClockCycle + tRFC;
+					bankStates[b]->currentBankState = REFRESHING;
+					bankStates[b]->lastCommand = REFRESH;
+					bankStates[b]->stateChangeCountdown = tRFC;
+				}
+
+
+
+				//thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle); 
+
+				//bankStates[b]->nextActivate = currentClockCycle + tRFC;
+				//bankStates[b]->currentBankState = REFRESHING;
+				//bankStates[b]->lastCommand = REFRESH;
+				//bankStates[b]->stateChangeCountdown = tRFC;
 			}
 			DEBUG(ALI(18)<<header<<ALI(15)<<*recvCMD<<"      next ACTIVATE time : "<<bankStates[recvCMD->bank]->nextActivate<<" [HMC clk]");
 			delete recvCMD;

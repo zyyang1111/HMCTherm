@@ -77,6 +77,7 @@ ThermalCal(ThermalCalculator(withLogic_))
 	// Log files generation
 	//
 	int status = 1;
+	cout << "Check this: " << resultdir << endl;
 	string result_file_str = resultdir + "result"; 
 	status = mkdir(result_file_str.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IWOTH | S_IXOTH);
 	

@@ -48,7 +48,8 @@ static bool USE_LOW_POWER = true;	//Power-down mode setting
 //
 //DRAM Timing  (HMC_2500_x32(DDR3_1600_x64) - Gem5 HMC modeling)
 //
-static int REFRESH_PERIOD = 7800;
+static int REFRESH_PERIOD = 3900;
+static int REFRESH_ROWNUM = 2; // refresh REFRESH_ROWNUM rows every time
 
 //CLOCK PERIOD
 static double tCK = 0.8;				//1250 MHz	//ns

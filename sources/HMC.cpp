@@ -31,7 +31,7 @@ HMC::HMC(ofstream &debugOut_, ofstream &stateOut_, ThermalCalculator *tcPtr):
 	vaultControllers.reserve(NUM_VAULTS);
 	drams.reserve(NUM_VAULTS);
 	for(int v=0; v<NUM_VAULTS; v++) {
-		vaultControllers.push_back(new VaultController(debugOut, stateOut, v));
+		vaultControllers.push_back(new VaultController(debugOut, stateOut, v, ThermalCalPtr));
 		drams.push_back(new DRAM(debugOut, stateOut, v, vaultControllers[v], ThermalCalPtr));
 	}
 	
