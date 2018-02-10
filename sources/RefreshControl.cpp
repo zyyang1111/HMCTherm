@@ -6,6 +6,8 @@ using namespace std;
 using namespace CasHMC; 
 
 extern string RTFileName;
+extern string RT_cntdown_str; 
+extern int cont_bool; 
 
 
 RFControl::RFControl():
@@ -18,14 +20,60 @@ RFControl::RFControl():
 	RetTCountDown_r = vector<vector<vector<int> > > (NUM_VAULTS, vector<vector<int> > (NUM_BANKS, vector<int> (NUM_ROWS, 0)));
 	RetTCountDown = vector<vector<vector<int> > > (NUM_VAULTS, vector<vector<int> > (NUM_BANKS, vector<int> (NUM_ROWS, 0)));
 
+
 	IniRet(); 
 	for (int iv = 0; iv < NUM_VAULTS; iv ++)
 		for (int ib = 0; ib < NUM_BANKS; ib ++)
 			for (int ir = 0; ir < NUM_ROWS; ir ++)
 				RetT[iv][ib][ir] = RetT_ref[iv][ib][ir];
 
-	IniRetCountD();
+	IniRetCountD(); // calculate this first to get RetTCountDown_r 
+					// we will over write RetTCountDown if cont_bool == 1
+
+	if (cont_bool){
+		LoadRetCountD();
+	}
+	
 }
+
+void RFControl::LoadRetCountD()
+{
+	string line; 
+	ifstream myfile(RT_cntdown_str.c_str()); 
+
+	cout << "Try to load RetTCountDown_file.txt\n";
+
+	if (myfile.is_open())
+	{
+		for (int i = 0; i < NUM_VAULTS; i++){
+			cout << "\rvault " << i << flush;
+			getline(myfile, line);
+			parse_line_2(line, i); 
+		}
+		cout << endl;
+		myfile.close();
+	}
+	else
+		cout << "Cannot open RetTCountDown_file.txt\n";
+}
+
+void RFControl::parse_line_2(string line, int vaultID)
+{
+	size_t found;
+	int ir = 0, ib = 0;  
+	while ((found = line.find_first_of(" ")) != string::npos){
+		RetTCountDown[vaultID][ib][ir] = atof(line.substr(0, found).c_str()); 
+		line.erase(0, found+1); 
+		ir ++; 
+		if (ir == NUM_ROWS){
+			ir = 0;
+			ib ++; 
+		}
+	}
+	found = line.find_first_of(";"); 
+	RetTCountDown[vaultID][ib][ir] = atof(line.substr(0, found).c_str()); 
+}
+
 
 void RFControl::IniDim(int x_, int y_, int z_)
 {
@@ -103,6 +151,8 @@ void RFControl::IniRetCountD()
 
 bool RFControl::UpdateCountD(int vault, int bank, int row)
 {
+	//if (row % 500 == 0)
+	//	cout << "RTCD[" << vault << "][" << bank << "][" << row << "] = " << RetTCountDown[vault][bank][row] << endl;
 	bool refresh = false; 
 	if (!RetTCountDown[vault][bank][row]){
 		refresh = true; 

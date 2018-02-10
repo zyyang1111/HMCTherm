@@ -19,19 +19,27 @@ extern "C" double *calculate_Cap_array(double W, double Lc, int numP, int dimX, 
 extern "C" double *initialize_Temperature(double W, double Lc, int numP, int dimX, int dimZ); 
 extern "C" double get_maxT(double *Tc, int Tsize);
 
-extern string logicPFileName; 
-extern string resultdir; 
-extern long PowerEpoch;
+extern string logicPFileName; // the name of the file given the power profiles for the logic layer(s)
+extern string resultdir; // the directory name for storing the result
+extern long PowerEpoch; 
+// used for control the start point when the simulation is restarted
+// clk_cycle_dist is the started clock cycle 
+// cont_bool = 0 indicates starting from the very beginning (i.e. clk_cycle_dist = 0)
+// cont_bool = 1 indicates starting from clk_cycle_dist --> all the previous data will be loaded
+extern uint64_t clk_cycle_dist; 
+extern int cont_bool; 
+extern int num_refresh_save; 
 
 ThermalCalculator::ThermalCalculator(bool withLogic_):
 	totalEnergy(0.0),
-	num_refresh(0),
 	sampleEnergy(0.0),
 	pe_crit(false),
 	sample_id(0),
 	withLogic(withLogic_),
 	RefreshCont(RFControl())
 	{
+		num_refresh = num_refresh_save; 
+		// if start from the scratch, num_refresh_save = 0
 		power_epoch = PowerEpoch; 
 		std::cout << "enter the assignment method\n";
 		std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
@@ -126,23 +134,44 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 		//////// Initialize the transient PDN variables /////////////
 		// IniTransPDN();
 
-		/* print the header for csv files */
+		/* define the file name */
 		power_trace_str = resultdir + "power_trace.csv"; 
 		temp_trace_str = resultdir + "temperature_trace.csv"; 
 		avg_power_str = resultdir + "Average_Power_Profile.csv";
 		final_temp_str = resultdir + "static_temperature.csv"; 
 		debug_power_resize_str = resultdir + "Debug_power_profile_resize.csv";
 		debug_power_str = resultdir + "Debug_power_profile.csv"; 
+		dump_RT_str = resultdir + "RetTCountDown_file.txt";
+		dump_curCyc_str = resultdir + "currentClockCycle_file.txt";
+		dump_Ttrans_str = resultdir + "Ttrans_file.txt"; 
+		dump_accuP_str = resultdir + "accuP_file.txt";
+		dump_curP_str = resultdir + "curP_file.txt";
 
-		std::ofstream power_file; 
-		std::ofstream temp_file; 
-		power_file.open(power_trace_str.c_str()); power_file << "S_id,layer,x,y,power\n"; power_file.close();
-		temp_file.open(temp_trace_str.c_str()); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
+
+		/* print the header for csv files */
+		//std::ofstream power_file; 
+		//std::ofstream temp_file; 
+		//power_file.open(power_trace_str.c_str()); power_file << "S_id,layer,x,y,power\n"; power_file.close();
+		//temp_file.open(temp_trace_str.c_str()); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
+
+		// if cont_bool == 1, reload the PTdata: T_trans, accu_Pmap, cur_Pmap
+		if (cont_bool)
+			Reload_PTdata(); 
+		else{
+			/* print the header for csv files */
+			std::ofstream power_file; 
+			std::ofstream temp_file; 
+			power_file.open(power_trace_str.c_str()); power_file << "S_id,layer,x,y,power\n"; power_file.close();
+			temp_file.open(temp_trace_str.c_str()); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
+		}
+
+		t = clock();
 	}
 
 ThermalCalculator::~ThermalCalculator()
 {
 	std::cout << "delete ThermalCalculator\n";
+	Dump_PTdata(); 
 	/* free the space of T */
     for (size_t i = 0; i < x; i++)
     {
@@ -180,6 +209,58 @@ ThermalCalculator::~ThermalCalculator()
     free(Cap);
 }
 
+void ThermalCalculator::Dump_PTdata()
+{
+	std::ofstream Trans_file, accuP_file, curP_file;  
+	Trans_file.open(dump_Ttrans_str.c_str());
+	accuP_file.open(dump_accuP_str.c_str());
+	curP_file.open(dump_curP_str.c_str()); 
+
+	int numP = ( withLogic ? z+2 : z); 
+	
+	for (int i = 0; i < x * y * (numP*3+1); i++)
+		Trans_file << T_trans[i] << " "; 
+	Trans_file.close(); 
+
+	for (int i = 0; i < x; i ++){
+		for (int j = 0; j < y; j ++){
+			for (int k = 0; k < z; k ++){
+				accuP_file << accu_Pmap[i][j][k] << " "; 
+				curP_file << cur_Pmap[i][j][k] << " "; 
+			}
+		}
+	}
+	accuP_file.close(); 
+	curP_file.close();
+}
+
+void ThermalCalculator::Reload_PTdata()
+{
+	// The file is the same as the dump file in Dump_PTdata
+	std::ifstream Trans_file, accuP_file, curP_file; 
+	Trans_file.open(dump_Ttrans_str.c_str());
+	accuP_file.open(dump_accuP_str.c_str());
+	curP_file.open(dump_curP_str.c_str()); 
+
+	int numP = ( withLogic ? z+2 : z);
+
+	for (int i = 0; i < x * y * (numP*3+1); i ++)
+		Trans_file >> T_trans[i]; 
+	Trans_file.close(); 
+
+	for (int i = 0; i < x; i ++){
+		for (int j = 0; j < y; j ++){
+			for (int k = 0; k < z; k ++){
+				accuP_file >> accu_Pmap[i][j][k]; 
+				curP_file >> cur_Pmap[i][j][k]; 
+			}
+		}
+	}
+	accuP_file.close(); 
+	curP_file.close();
+}
+
+
 int ThermalCalculator::square_array(int total_grids_)
 {
 	int x, y, x_re = 1; 
@@ -194,6 +275,11 @@ int ThermalCalculator::square_array(int total_grids_)
 
 void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
 {
+	if (cur_cycle <= clk_cycle_dist){
+		if (cur_cycle > (sample_id+1) * power_epoch)
+			sample_id = sample_id + 1;
+		return; 
+	}
 	cout << "addPower_refresh\n";
 	num_refresh ++;
 	if (cur_cycle > (sample_id+1) * power_epoch)
@@ -226,11 +312,17 @@ void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, u
 void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle)
 {
 	//cout << "addPower\n";
+	//cout << "cur_cycle = " << cur_cycle << endl;
 
 	//std::cout << "energy = " << energy_t_ << std::endl; 
 	//std::cout << "(vault, bank, row, col) = " << "( " << vault_id_ << ", " << bank_id_ << ", " << row_id_ << ", " << col_id_ << " )" << std::endl;
 	//std::cout << "single_bank is " << single_bank << std::endl;
-    
+    if (cur_cycle <= clk_cycle_dist){
+		if (cur_cycle > (sample_id+1) * power_epoch)
+			sample_id = sample_id + 1;
+		return; 
+	}
+
 	////// determine whether the sampling period ends //////////////
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
@@ -316,6 +408,11 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 
 void ThermalCalculator::addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
 {
+	if (cur_cycle <= clk_cycle_dist){
+		if (cur_cycle > (sample_id+1) * power_epoch)
+			sample_id = sample_id + 1;
+		return; 
+	}
 	////// determine whether the sampling period ends //////////////
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
@@ -590,7 +687,7 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 	/* accuP = true: calculate for the accumulative power */
 	/* accuP = false: calculate for the transient power */
  
-	std::cout << "\ncome in the genTotalP\n";
+	//std::cout << "\ncome in the genTotalP\n";
 
 	double logicE, cellE_ratio, cellE; 
 	uint64_t ElapsedCycle = cur_cycle; 
@@ -612,7 +709,7 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 	power_file.close();
 
 
-	std::cout << "finish imresize2D\n";
+	//std::cout << "finish imresize2D\n";
 	double val = 0.0;
 	for (int i = 0; i < x; i ++)
 		for (int j = 0; j < y; j++)
@@ -742,8 +839,10 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 	genTotalP(false, power_epoch); 
 	printSamplePower2(power_epoch, S_id); 
 
+	cout << "\ntime = " << float(clock() - t)/CLOCKS_PER_SEC << " [s]\n";  
 	cout << "========= solve for Sample " << S_id << "==== Current time is " << power_epoch * (S_id+1) * CPU_CLK_PERIOD * 1e-9 << "[s] ================\n";
 
+	t = clock(); 
 	//bool withLogic = true;
 
 	////// calclate the transient temperature ////////
@@ -959,31 +1058,38 @@ void ThermalCalculator::UpdateRefreshCont()
 	//cout << endl;
 }
 
-void ThermalCalculator::printRT(unsigned S_id)
+void ThermalCalculator::printRT(uint64_t cur_cycle)
 {
-	std::ostringstream file_oss; 
+	cout << "Print Retention Time Count Down\n";
+	//std::ostringstream file_oss; 
 	std::ofstream RT_file;
+	std::ofstream cur_file; 
 
-	file_oss << "./power_trace/RT_sample_" << S_id << ".csv";
-	std::string file_name_str = file_oss.str();
-	file_oss.str("");
-	char* file_name = new char[file_name_str.size() + 1]; 
-	std::copy(file_name_str.begin(), file_name_str.end(), file_name); 
-	file_name[file_name_str.size()] = '\0';
-	RT_file.open(file_name); 
+	//file_oss << "./power_trace/RT_sample_" << S_id << ".csv";
+	//std::string file_name_str = file_oss.str();
+	//file_oss.str("");
+	//char* file_name = new char[file_name_str.size() + 1]; 
+	//std::copy(file_name_str.begin(), file_name_str.end(), file_name); 
+	//file_name[file_name_str.size()] = '\0';
+	RT_file.open(dump_RT_str.c_str()); 
+	//RT_file << NUM_VAULTS << " " << NUM_BANKS << " " << NUM_ROWS << endl; 
 
 	for (int iv = 0; iv < NUM_VAULTS; iv ++){
 		for (int ib = 0; ib < NUM_BANKS; ib ++){
 			for (int ir = 0; ir < NUM_ROWS; ir ++){
 				RT_file << RefreshCont.RetTCountDown[iv][ib][ir]; 
 				if (ir < NUM_ROWS - 1)
-					RT_file << ",";
+					RT_file << " ";
 			}
 			if (ib < NUM_BANKS - 1)
-				RT_file << ",";
+				RT_file << " ";
 		}
-		RT_file << endl;
+		RT_file << ";\n";
 	}
 	RT_file.close();
+
+	cur_file.open(dump_curCyc_str.c_str());
+	cur_file << cur_cycle << endl;
+	cur_file.close(); 
 
 }

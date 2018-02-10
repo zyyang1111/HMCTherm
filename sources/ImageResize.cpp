@@ -111,7 +111,7 @@ vector<vector<double> > ThermalCalculator::imresize2D(vector<vector<double> > In
 		}
 	}
 
-	cout << "total_val = " << total_val << "\n";
+	//cout << "total_val = " << total_val << "\n";
 
 	////////////// get the new power density /////////////////
 	///////////// using nearest method to do /////////////////

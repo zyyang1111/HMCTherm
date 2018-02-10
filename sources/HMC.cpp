@@ -52,6 +52,8 @@ HMC::HMC(ofstream &debugOut_, ofstream &stateOut_, ThermalCalculator *tcPtr):
 
 HMC::~HMC()
 {
+	// std::cout << "HMC: currentClockCycle = " << currentClockCycle << std::endl;
+	ThermalCalPtr->printRT(currentClockCycle);
 	for(int l=0; l<NUM_LINKS; l++) {
 		delete downLinkSlaves[l];
 		delete upLinkMasters[l];

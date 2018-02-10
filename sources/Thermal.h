@@ -38,6 +38,7 @@
 #include <vector>
 #include <iostream>
 #include "RefreshControl.h"
+#include <ctime>
 
 namespace CasHMC
 {
@@ -103,8 +104,13 @@ class ThermalCalculator
 	std::string final_temp_str; // complete path + file for static temperature 
 	std::string debug_power_resize_str; 
 	std::string debug_power_str; 
+	std::string dump_RT_str;
+	std::string dump_curCyc_str;
+	std::string dump_Ttrans_str; 
+	std::string dump_accuP_str; 
+	std::string dump_curP_str;
 
-
+	clock_t t; 
 
 public: 
 	ThermalCalculator(bool withLogic_);
@@ -175,7 +181,9 @@ public:
     /***********************************************************************/
     RFControl RefreshCont; 
     void UpdateRefreshCont(); 
-    void printRT(unsigned S_id);
+    void printRT(uint64_t cur_cycle);
+    void Dump_PTdata();
+    void Reload_PTdata();
 
 };
 

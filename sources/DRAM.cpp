@@ -38,6 +38,7 @@ DRAM::DRAM(ofstream &debugOut_, ofstream &stateOut_, unsigned id, VaultControlle
 
 DRAM::~DRAM()
 {
+	// std::cout << "DRAM: currentClockCycle = " << currentClockCycle << std::endl;
 	for(int i=0; i<readReturnDATA.size(); i++) {
 		delete readReturnDATA[i];
 	}

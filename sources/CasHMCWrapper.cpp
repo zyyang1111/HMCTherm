@@ -77,7 +77,7 @@ ThermalCal(ThermalCalculator(withLogic_))
 	// Log files generation
 	//
 	int status = 1;
-	cout << "Check this: " << resultdir << endl;
+	//cout << "Check this: " << resultdir << endl;
 	string result_file_str = resultdir + "result"; 
 	status = mkdir(result_file_str.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IWOTH | S_IXOTH);
 	
@@ -133,6 +133,7 @@ ThermalCal(ThermalCalculator(withLogic_))
 		temp_vn << ver_num;
 		logName += temp_vn.str();
 		logName += "_setting.log";
+		
 		
 		if(access(logName.c_str(), 0) == -1)	break;
 		else {
@@ -205,6 +206,7 @@ CasHMCWrapper::~CasHMCWrapper()
 	PrintEpochStatistic();
 	PrintFinalStatistic();
 	printAveragePower(); // yzy: printout power maps to .csv
+	//ThermalCal.printRT();
 	debugOut.flush();		debugOut.close();
 	stateOut.flush();		stateOut.close();
 	plotDataOut.flush();	plotDataOut.close();
@@ -978,13 +980,13 @@ void CasHMCWrapper::printAveragePower()
 
 void CasHMCWrapper::CalcFinalT()
 {
-	cout << "come to CalcFinalT()" << endl;
+	//cout << "come to CalcFinalT()" << endl;
 	ThermalCal.calcT(currentClockCycle);
 }
 
 void CasHMCWrapper::CalcFinalV()
 {
-	cout << "come to CalcFinalV()" << endl;
+	//cout << "come to CalcFinalV()" << endl;
 	ThermalCal.calc_steadyPDN(currentClockCycle);
 }
 

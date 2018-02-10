@@ -39,6 +39,8 @@ namespace CasHMC
 		// return "true" is the corresponding countdown = 0; return "false" otherwise
 		// if countdown == 0, reset countdown value
 		// if countdown != 0, countdown --
+		void LoadRetCountD();
+		void parse_line_2(string line, int vaultID);
 
 	};
 

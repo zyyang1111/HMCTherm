@@ -39,8 +39,12 @@ string traceFileName = "";
 string logicPFileName = "";
 string RTFileName = "";
 string resultdir = "";
+string RT_cntdown_str = "";
 vector<Transaction *> transactionBuffers;
 CasHMCWrapper *casHMCWrapper;
+int cont_bool = 0; // 1 --> read continue data
+uint64_t clk_cycle_dist = 0; 
+int num_refresh_save = 0;
 
 // yzy : 2/7/2018
 // handle ctrl+C exeption
@@ -190,12 +194,13 @@ int main(int argc, char **argv)
 			{"result_directory", required_argument, 0, 'd'},
 			{"DRAM_refresh_file", required_argument, 0, 's'},
 			{"file",  required_argument, 0, 'f'},
+			{"continue", required_argument, 0, 'k'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:h:k", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:k:h", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -287,12 +292,24 @@ int main(int argc, char **argv)
 					exit(0);
 				}
 				break;
+			case 'k':
+				cont_bool = atoi(optarg);
+				break;
 			case 'h':
 			case '?':
 				help();
 				exit(0);
 				break;
 		}
+	}
+
+	if (cont_bool){
+		RT_cntdown_str = resultdir + "RetTCountDown_file.txt";
+		string curclk_str = resultdir + "currentClockCycle_file.txt";
+		ifstream filein;
+		filein.open(curclk_str.c_str());
+		filein >> clk_cycle_dist; 
+		filein >> num_refresh_save;
 	}
 
 	//std::cout << "Now, ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
@@ -370,6 +387,7 @@ int main(int argc, char **argv)
 				//transactionBuffers.clear();
 				//delete casHMCWrapper;
 				//casHMCWrapper = NULL;
+				cout << "cpuCycle = " << cpuCycle << endl;
 				break;
 			}
 		}
@@ -381,6 +399,7 @@ int main(int argc, char **argv)
 	transactionBuffers.clear();
 	delete casHMCWrapper;
 	casHMCWrapper = NULL;
+
 
 	return 0;
 }
