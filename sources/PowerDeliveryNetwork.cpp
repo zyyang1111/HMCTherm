@@ -12,13 +12,14 @@ using namespace CasHMC;
 extern "C" double ***calculate_steady_PDN(double ***powerM, double **Midx, int count, int Wnum, int Lnum, int layer_num, double svdd);
 extern "C" double **calculate_PDN_Midx(int **C4map, int **TSVmap, int Wnum, int Lnum, int layer_num, int *MidxSize);
 
+extern double CPU_CLK_PERIOD;
 
 void ThermalCalculator::calcPDNMidx()
 {
     ReadC4map(); 
     ReadTSVmap();
     int i, j; // indicators 
-    int numP = z+2; 
+    int numP = z+logicP_z+1; 
 
     ///////////////////// generate the PDN TSV map ////////////////////////////////////////
     int **TSV_map; 
@@ -61,8 +62,8 @@ void ThermalCalculator::calc_steadyPDN(uint64_t cur_cycle)
     genTotalP(true, cur_cycle);
 
 	vector<vector<vector<double> > > ResizedP; 
-	ResizedP = imresize(accu_Pmap_wLogic, PDN_x, PDN_y, z+2);
-    printResizedP(ResizedP, PDN_x, PDN_y, z+2, cur_cycle);
+	ResizedP = imresize(accu_Pmap_wLogic, PDN_x, PDN_y, z+logicP_z+1);
+    printResizedP(ResizedP, PDN_x, PDN_y, z+logicP_z+1, cur_cycle);
 
 	/////////////////////// generate the power map /////////////////////////////////////////
 	double ***powerM; 
@@ -71,7 +72,7 @@ void ThermalCalculator::calc_steadyPDN(uint64_t cur_cycle)
 	// uint64_t ElapsedCycle = (cur_cycle % LOG_EPOCH == 0)?(LOG_EPOCH):(cur_cycle % LOG_EPOCH); 
 	uint64_t ElapsedCycle = cur_cycle; 
 
-	numP = z+2; dimX = PDN_x; dimZ = PDN_y;
+	numP = z+logicP_z+1; dimX = PDN_x; dimZ = PDN_y;
 	if ( !(powerM = (double ***)malloc(dimX * sizeof(double **))) ) printf("Malloc fails for powerM[].\n");
     for (i = 0; i < dimX; i++)
     {
@@ -99,13 +100,6 @@ void ThermalCalculator::calc_steadyPDN(uint64_t cur_cycle)
     printV();
 
     cout << "finish print!\n";
-
-
-
-
-
-
-
 
 
 }

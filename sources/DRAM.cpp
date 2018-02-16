@@ -74,7 +74,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 	switch(recvCMD->commandType) {
 		case ACTIVATE:
 		    energy_t = (((double)IDD0 * (double)tRC) - (((double)IDD3N * (double)tRAS) + ((double)IDD2N * ((double)tRC - (double)tRAS))));
-		    thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle); 
+		    thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 1); 
 		    thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
 
 			bankStates[recvCMD->bank]->currentBankState = ROW_ACTIVE;
@@ -94,7 +94,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			break;
 		case READ:
             energy_t = ((double)IDD4R - (double)IDD3N) * (double)BL/2.0;
-            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle); 
+            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 2); 
             energy_t = IOREAD * 32 * 8; // read IO power, spread it across the layer
             thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
@@ -114,7 +114,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			break;
 		case READ_P:
             energy_t = ((double)IDD4R - (double)IDD3N) * (double)BL/2.0;
-            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle); 
+            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 2); 
             energy_t = IOREAD * 32 * 8; // read IO power  
             thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
@@ -138,7 +138,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			break;
 		case WRITE:
             energy_t = ((double)IDD4W - (double)IDD3N) * (double)BL/2.0;
-            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle); 
+            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 3); 
             energy_t = IOWRITE * 32 * 8; // write IO power  
             thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
@@ -155,7 +155,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			break;
 		case WRITE_P:
             energy_t = ((double)IDD4W - (double)IDD3N) * (double)BL/2.0;
-            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle); 
+            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 3); 
             energy_t = IOWRITE * 32 * 8; // write IO power  
             thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
@@ -178,7 +178,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			break;
 		case PRECHARGE:
             energy_t = ((double)IDD0 - (double)IDD2N) * ((double)tRC - (double)tRAS);
-            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle); 
+            thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 4); 
             thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
 
 			bankStates[recvCMD->bank]->currentBankState = PRECHARGING;
@@ -266,7 +266,7 @@ bool DRAM::powerDown()
         //std::cout << "powerDown: Energy_t = " << energy_t << std::endl; 
 
 		for(int b=0; b<NUM_BANKS; b++) {
-            thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle); 
+            thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle, 0); 
 
 			bankStates[b]->currentBankState = POWERDOWN;
 			bankStates[b]->nextPowerUp = currentClockCycle + tCKE;
@@ -293,7 +293,7 @@ void DRAM::powerUp()
     //std::cout << "powerUp: Energy_t = " << energy_t << std::endl; 
 
 	for(int b=0; b<NUM_BANKS; b++) {
-        thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle); 
+        thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle, 0); 
 
 		bankStates[b]->lastCommand = POWERDOWN_EXIT;
 		bankStates[b]->currentBankState = AWAKING;

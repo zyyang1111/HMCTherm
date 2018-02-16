@@ -45,6 +45,9 @@ CasHMCWrapper *casHMCWrapper;
 int cont_bool = 0; // 1 --> read continue data
 uint64_t clk_cycle_dist = 0; 
 int num_refresh_save = 0;
+// define CPU_CLK_PERIOD here
+double CPU_CLK_PERIOD = 0.5; 
+
 
 // yzy : 2/7/2018
 // handle ctrl+C exeption
@@ -194,13 +197,14 @@ int main(int argc, char **argv)
 			{"result_directory", required_argument, 0, 'd'},
 			{"DRAM_refresh_file", required_argument, 0, 's'},
 			{"file",  required_argument, 0, 'f'},
+			{"CPU_CLK_PERIOD", required_argument, 0, 'b'},
 			{"continue", required_argument, 0, 'k'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:k:h", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:b:k:h", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -225,6 +229,9 @@ int main(int argc, char **argv)
 				break;
 			case 'e':
 				PowerEpoch = atol(optarg);
+				break;
+			case 'b':
+				CPU_CLK_PERIOD = atof(optarg); 
 				break;
 			case 't':
 				traceType = string(optarg);
@@ -312,6 +319,7 @@ int main(int argc, char **argv)
 		filein >> num_refresh_save;
 	}
 
+	std::cout << "CPU_CLK_PERIOD = " << CPU_CLK_PERIOD << std::endl;
 	//std::cout << "Now, ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
 	//cout << "Now: NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
     //cout << "Now: NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;

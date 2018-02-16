@@ -19,6 +19,7 @@ extern double memUtil;					//Frequency of requests - 0.0 = no requests, 1.0 = as
 extern double rwRatio;					//(%) The percentage of reads in request stream
 extern string traceFileName;			//Trace file name
 extern string resultdir;
+extern double CPU_CLK_PERIOD;
 
 namespace CasHMC
 {
@@ -913,7 +914,8 @@ void CasHMCWrapper::PrintFinalStatistic()
 	
 	resultOut<<"  ============= CasHMC statistic result ============="<<endl<<endl;
 	resultOut<<"  Elapsed epoch : "<<currentClockCycle/LOG_EPOCH<<endl;
-	resultOut<<"  Elapsed clock : "<<currentClockCycle<<endl<<endl;
+	resultOut<<"  Elapsed clock : "<<currentClockCycle<<endl;
+	resultOut<<"  CPU_CLK_PERIOD : "<<CPU_CLK_PERIOD<<endl<<endl;
 	
 	resultOut<<"        HMC bandwidth : "<<ALI(7)<<hmcBandwidth<<" GB/s  (Considered only data size)"<<endl;
 	resultOut<<"       Link bandwidth : "<<ALI(7)<<linkBandwidthSum<<" GB/s  (Included flow packet)"<<endl;

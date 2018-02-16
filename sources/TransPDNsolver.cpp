@@ -10,6 +10,8 @@
 using namespace std; 
 using namespace CasHMC; 
 
+extern double CPU_CLK_PERIOD;
+
 void ThermalCalculator::IniTransPDN()
 {
 	V_onC = vector<vector<vector<double> > > (PDN_x, vector<vector<double> > (PDN_y, vector<double> (z+1, 0))); 

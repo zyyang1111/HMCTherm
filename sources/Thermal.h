@@ -64,6 +64,11 @@ class ThermalCalculator
 
 	int num_refresh;
 
+	// statics
+	double totRead_E, totWrite_E, totRef_E, totIO_E, totACT_E, totPre_E, totBack_E; 
+	double sapRead_E, sapWrite_E, sapRef_E, sapIO_E, sapACT_E, sapPre_E, sapBack_E;
+
+
 	// temperature variable 
 	double **Midx; // Midx storing conductance 
 	int MidxSize; 
@@ -77,7 +82,6 @@ class ThermalCalculator
 	std::vector<std::vector<double> > logicP_map; 
 
 	// transient control parameters
-	bool pe_crit; // if true: current_cycle % power_epoch == 0 
 	unsigned power_epoch; // power sampling period
 	double max_tp; // maximum time step
 	unsigned sample_id; // index for the sampling nodes
@@ -100,6 +104,7 @@ class ThermalCalculator
 
 	std::string power_trace_str; // complete path + file for power trace
 	std::string temp_trace_str; // complete path + file for temperature trace
+	std::string power_stat_str; // complete path + file for power statics for each trace
 	std::string avg_power_str; // complete path + file for average power 
 	std::string final_temp_str; // complete path + file for static temperature 
 	std::string debug_power_resize_str; 
@@ -109,6 +114,7 @@ class ThermalCalculator
 	std::string dump_Ttrans_str; 
 	std::string dump_accuP_str; 
 	std::string dump_curP_str;
+	std::string dump_Pstat_str;
 
 	clock_t t; 
 
@@ -121,7 +127,7 @@ public:
     /***********************************************************************/
 
 	void addPower_refresh(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle);
-	void addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle); 
+	void addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle, int cmd_type); 
 	void addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle);
 	int square_array(int total_grids_);
 	void mapPhysicalLocation(unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, int *layer, int *row, int *col);

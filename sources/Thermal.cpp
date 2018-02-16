@@ -29,17 +29,23 @@ extern long PowerEpoch;
 extern uint64_t clk_cycle_dist; 
 extern int cont_bool; 
 extern int num_refresh_save; 
+extern double CPU_CLK_PERIOD;
 
 ThermalCalculator::ThermalCalculator(bool withLogic_):
 	totalEnergy(0.0),
 	sampleEnergy(0.0),
-	pe_crit(false),
 	sample_id(0),
 	withLogic(withLogic_),
 	RefreshCont(RFControl())
 	{
 		num_refresh = num_refresh_save; 
 		// if start from the scratch, num_refresh_save = 0
+		///////// read power of the logic layer from the file //////////
+		ReadlogicP();
+
+		totRead_E = 0; totWrite_E = 0; totRef_E = 0; totIO_E = 0; totACT_E = 0; totPre_E = 0; totBack_E = 0;
+	    sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
+
 		power_epoch = PowerEpoch; 
 		std::cout << "enter the assignment method\n";
 		std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
@@ -100,9 +106,11 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 
 		// initialize the accumulative power maps 
 		accu_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		accu_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+2, 0))); // memory logic layer + processor layer
+		accu_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+logicP_z+1, 0))); 
+		// memory logic layer + processor layer
+		// the number of processor layers is determined by logicP_z
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		cur_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+2, 0)));
+		cur_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+logicP_z+1, 0)));
 
 		vault_usage_single = vector<int> (NUM_VAULTS, 0);
 		vault_usage_multi = vector<int> (NUM_VAULTS, 0);
@@ -127,8 +135,7 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 
 		///////// calculate Midx and MidxSize for temperature ///////////////
 		calcMidx();
-		///////// read power of the logic layer from the file //////////
-		ReadlogicP();
+		
 		///////// calculate Midx and MidxSize for PDN ///////////////
 		// calcPDNMidx();
 		//////// Initialize the transient PDN variables /////////////
@@ -137,6 +144,7 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 		/* define the file name */
 		power_trace_str = resultdir + "power_trace.csv"; 
 		temp_trace_str = resultdir + "temperature_trace.csv"; 
+		power_stat_str = resultdir + "power_statics_trace.csv";
 		avg_power_str = resultdir + "Average_Power_Profile.csv";
 		final_temp_str = resultdir + "static_temperature.csv"; 
 		debug_power_resize_str = resultdir + "Debug_power_profile_resize.csv";
@@ -146,6 +154,8 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 		dump_Ttrans_str = resultdir + "Ttrans_file.txt"; 
 		dump_accuP_str = resultdir + "accuP_file.txt";
 		dump_curP_str = resultdir + "curP_file.txt";
+		dump_Pstat_str = resultdir + "Pstat_file.txt";
+
 
 
 		/* print the header for csv files */
@@ -161,8 +171,10 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 			/* print the header for csv files */
 			std::ofstream power_file; 
 			std::ofstream temp_file; 
+			std::ofstream power_stat_file; 
 			power_file.open(power_trace_str.c_str()); power_file << "S_id,layer,x,y,power\n"; power_file.close();
 			temp_file.open(temp_trace_str.c_str()); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
+			power_stat_file.open(power_stat_str.c_str()); power_stat_file << "S_id,tot,Read,Write,ACT,Ref,Pre,Back,IO\n"; power_stat_file.close();
 		}
 
 		t = clock();
@@ -211,12 +223,13 @@ ThermalCalculator::~ThermalCalculator()
 
 void ThermalCalculator::Dump_PTdata()
 {
-	std::ofstream Trans_file, accuP_file, curP_file;  
+	std::ofstream Trans_file, accuP_file, curP_file, Pstat_file;  
 	Trans_file.open(dump_Ttrans_str.c_str());
 	accuP_file.open(dump_accuP_str.c_str());
 	curP_file.open(dump_curP_str.c_str()); 
+	Pstat_file.open(dump_Pstat_str.c_str());
 
-	int numP = ( withLogic ? z+2 : z); 
+	int numP = ( withLogic ? z+logicP_z+1 : z); 
 	
 	for (int i = 0; i < x * y * (numP*3+1); i++)
 		Trans_file << T_trans[i] << " "; 
@@ -232,17 +245,21 @@ void ThermalCalculator::Dump_PTdata()
 	}
 	accuP_file.close(); 
 	curP_file.close();
+
+	Pstat_file << sampleEnergy << "\n" << sapRead_E  << "\n" << sapWrite_E << "\n" << sapACT_E << "\n" << sapRef_E << "\n" << sapPre_E << "\n" << sapBack_E << "\n" << sapIO_E << std::endl;
+	Pstat_file.close();
 }
 
 void ThermalCalculator::Reload_PTdata()
 {
 	// The file is the same as the dump file in Dump_PTdata
-	std::ifstream Trans_file, accuP_file, curP_file; 
+	std::ifstream Trans_file, accuP_file, curP_file, Pstat_file; 
 	Trans_file.open(dump_Ttrans_str.c_str());
 	accuP_file.open(dump_accuP_str.c_str());
 	curP_file.open(dump_curP_str.c_str()); 
+	Pstat_file.open(dump_Pstat_str.c_str());
 
-	int numP = ( withLogic ? z+2 : z);
+	int numP = ( withLogic ? z+logicP_z+1 : z);
 
 	for (int i = 0; i < x * y * (numP*3+1); i ++)
 		Trans_file >> T_trans[i]; 
@@ -258,6 +275,10 @@ void ThermalCalculator::Reload_PTdata()
 	}
 	accuP_file.close(); 
 	curP_file.close();
+
+	Pstat_file >> sampleEnergy; Pstat_file >> sapRead_E; Pstat_file >> sapWrite_E; Pstat_file >> sapACT_E; 
+	Pstat_file >> sapRef_E; Pstat_file >> sapPre_E; Pstat_file >> sapBack_E; Pstat_file >> sapIO_E;
+	Pstat_file.close();
 }
 
 
@@ -275,22 +296,25 @@ int ThermalCalculator::square_array(int total_grids_)
 
 void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
 {
-	if (cur_cycle <= clk_cycle_dist){
+	if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)){
 		if (cur_cycle > (sample_id+1) * power_epoch)
 			sample_id = sample_id + 1;
 		return; 
 	}
-	cout << "addPower_refresh\n";
+	//cout << "addPower_refresh\n";
 	num_refresh ++;
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
+		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		sampleEnergy = 0; 
+		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
 		sample_id = sample_id + 1; 
 	}
 	totalEnergy += energy_t_ * Vdd / 1000.0;
     sampleEnergy += energy_t_ * Vdd / 1000.0;
+    totRef_E += energy_t_ * Vdd / 1000.0; 
+    sapRef_E += energy_t_ * Vdd / 1000.0;
     
     vault_usage_multi[vault_id_] ++; 
     double energy; 
@@ -309,7 +333,7 @@ void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, u
 }
 
 
-void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle)
+void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle, int cmd_type)
 {
 	//cout << "addPower\n";
 	//cout << "cur_cycle = " << cur_cycle << endl;
@@ -317,7 +341,7 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 	//std::cout << "energy = " << energy_t_ << std::endl; 
 	//std::cout << "(vault, bank, row, col) = " << "( " << vault_id_ << ", " << bank_id_ << ", " << row_id_ << ", " << col_id_ << " )" << std::endl;
 	//std::cout << "single_bank is " << single_bank << std::endl;
-    if (cur_cycle <= clk_cycle_dist){
+    if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)){
 		if (cur_cycle > (sample_id+1) * power_epoch)
 			sample_id = sample_id + 1;
 		return; 
@@ -326,30 +350,40 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 	////// determine whether the sampling period ends //////////////
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
+		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		sampleEnergy = 0; 
+		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
 		sample_id = sample_id + 1; 
 	}
-/*
-	if (cur_cycle % power_epoch == 0)
-		pe_crit = true; 
-	else
-	{
-		if (pe_crit)
-		{
-			// save the sampling power 
-			save_sampleP(cur_cycle); 
-			cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-			sampleEnergy = 0;
-			pe_crit = false; 
-		}
-	}*/
+
 	////////////////////////////////////////////////////////////////
 
 
     totalEnergy += energy_t_ * Vdd / 1000.0;
     sampleEnergy += energy_t_ * Vdd / 1000.0;
+    switch (cmd_type){
+    	case 0:
+    		totBack_E += energy_t_ * Vdd / 1000.0;
+    		sapBack_E += energy_t_ * Vdd / 1000.0;
+    		break;
+    	case 1: 
+    		totACT_E += energy_t_ * Vdd / 1000.0;
+    		sapACT_E += energy_t_ * Vdd / 1000.0;
+    		break;
+    	case 2: 
+    		totRead_E += energy_t_ * Vdd / 1000.0;
+    		sapRead_E += energy_t_ * Vdd / 1000.0;
+    		break;
+    	case 3: 
+    		totWrite_E += energy_t_ * Vdd / 1000.0;
+    		sapWrite_E += energy_t_ * Vdd / 1000.0;
+    		break;
+    	case 4: 
+    		totPre_E += energy_t_ * Vdd / 1000.0;
+    		sapPre_E += energy_t_ * Vdd / 1000.0;
+    		break;
+    }
     
 	if (single_bank)
 	{
@@ -408,7 +442,7 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 
 void ThermalCalculator::addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
 {
-	if (cur_cycle <= clk_cycle_dist){
+	if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)){
 		if (cur_cycle > (sample_id+1) * power_epoch)
 			sample_id = sample_id + 1;
 		return; 
@@ -416,25 +450,13 @@ void ThermalCalculator::addIOPower(double energy_t_, unsigned vault_id_, unsigne
 	////// determine whether the sampling period ends //////////////
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
+		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		sampleEnergy = 0; 
+		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
 		sample_id = sample_id + 1; 
 	}
-	/*
-	if (cur_cycle % power_epoch == 0)
-		pe_crit = true; 
-	else
-	{
-		if (pe_crit)
-		{
-			// save the sampling power 
-			save_sampleP(cur_cycle); 
-			cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-			sampleEnergy = 0;
-			pe_crit = false; 
-		}
-	}*/
+
 
 	int NGperLperV = bank_x * bank_y * NUM_GRIDS_X * NUM_GRIDS_Y;
 	double energy = energy_t_ / NGperLperV; // spread the power to all the grids on one layer
@@ -445,6 +467,8 @@ void ThermalCalculator::addIOPower(double energy_t_, unsigned vault_id_, unsigne
 
 	totalEnergy += energy_t_ * Vdd / 1000.0; 
 	IOEnergy += energy_t_ * Vdd / 1000.0;
+	totIO_E += energy_t_ * Vdd / 1000.0;
+	sapIO_E += energy_t_ * Vdd / 1000.0;
 
 	// just need the layer of the visit 
 	for (int i = vault_id_x * bank_x * NUM_GRIDS_X; i < (vault_id_x + 1) * bank_x * NUM_GRIDS_X; i ++){
@@ -546,18 +570,21 @@ void ThermalCalculator::printP_new(uint64_t cur_cycle){
 	for (int iz = 0; iz < z; iz ++){
 		for (int iy = 0; iy < y; iy ++){
 			for (int ix = 0; ix < x; ix ++){
-				power_file << "MEM," << iz << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle / CPU_CLK_PERIOD * tCK << "," << ix/(x/vault_x)*vault_y + iy/(y/vault_y) << "," << (ix%(x/vault_x))/NUM_GRIDS_X*bank_y + (iy%(y/vault_y))/NUM_GRIDS_Y  <<std::endl;
+				power_file << "MEM," << iz << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle << "," << ix/(x/vault_x)*vault_y + iy/(y/vault_y) << "," << (ix%(x/vault_x))/NUM_GRIDS_X*bank_y + (iy%(y/vault_y))/NUM_GRIDS_Y  <<std::endl;
 			}
 		}
 	}
 	for (int iy = 0; iy < y; iy ++){
 		for (int ix = 0; ix < x; ix ++){
-			power_file << "LOGIC," << z << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][z] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK << ",-1,-1," << std::endl;
+			power_file << "LOGIC," << z << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][z] / (double) ElapsedCycle << ",-1,-1," << std::endl;
 		}
 	}
-	for (int iy = 0; iy < y; iy ++){
-		for (int ix = 0; ix < x; ix ++){
-			power_file << "CPU," << z+1 << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][z+1] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK << ",-1,-1," << std::endl;
+	// for multi-layer : add iz from z+1 to z+logicP_z
+	for (int iz = z+1; iz < z+logicP_z+1; iz ++){
+		for (int iy = 0; iy < y; iy ++){
+			for (int ix = 0; ix < x; ix ++){
+				power_file << "CPU," << iz << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle << ",-1,-1," << std::endl;
+			}
 		}
 	}
 	power_file.close();
@@ -568,14 +595,9 @@ void ThermalCalculator::printTtrans(unsigned S_id)
 {
 	// extract the temperature to a 3D array 
 	int numP, dimX, dimZ; 
-	//double T0 = 273;
+
 	dimX = x; dimZ = y; 
-	if (withLogic){
-		numP = z + 2;
-	}
-	else{
-		numP = z; 
-	}
+	numP = (withLogic ? z+logicP_z+1 : z);
 
 	double maxTT; maxTT = get_maxT(T_trans, dimX*dimZ*(numP*3+1));
     std::cout << "Now maxT = " << maxTT - T0 << std::endl;
@@ -585,15 +607,6 @@ void ThermalCalculator::printTtrans(unsigned S_id)
 	T = vector<vector<vector<double> > > (dimX, vector<vector<double> > (dimZ, vector<double> (numP, 0)));
 	layerP = vector<int> (numP, 0);
 
-	/*
-	for (int l = 0; l < numP; l ++){
-		layerP[l] = l * 3;
-        for (int i = 0; i < dimX; i ++){
-            for (int j = 0; j < dimZ; j++){
-                T[i][j][l] = T_trans[dimX*dimZ*(layerP[l]+1) + j*dimX + i];
-            }
-        }
-	}*/
 
 	for (int l = 0; l < numP; l ++){
 		layerP[l] = l * 3;
@@ -623,10 +636,10 @@ void ThermalCalculator::printSamplePower2(uint64_t cur_cycle, unsigned S_id){
 	std::ofstream power_file; 
 	power_file.open(power_trace_str.c_str(), std::ios_base::app);
 	if (withLogic){
-		for (int iz = 0; iz < z+2; iz ++){
+		for (int iz = 0; iz < z+logicP_z+1; iz ++){
 			for (int iy = 0; iy < y; iy ++){
 				for (int ix = 0; ix < x; ix ++){
-					power_file << S_id << "," << iz << "," << ix << "," << iy << "," << cur_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK << std::endl;
+					power_file << S_id << "," << iz << "," << ix << "," << iy << "," << cur_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle << std::endl;
 				}
 			}
 		}
@@ -636,12 +649,23 @@ void ThermalCalculator::printSamplePower2(uint64_t cur_cycle, unsigned S_id){
 		for (int iz = 0; iz < z; iz ++){
 			for (int iy = 0; iy < y; iy ++){
 				for (int ix = 0; ix < x; ix ++){
-					power_file << S_id << "," << iz << "," << ix << "," << iy << "," << cur_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK << std::endl;
+					power_file << S_id << "," << iz << "," << ix << "," << iy << "," << cur_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle << std::endl;
 				}
 			}
 		}
 		power_file.close();
 	}
+
+
+	// print the power statics
+	std::ofstream power_stat_file; 
+	power_stat_file.open(power_stat_str.c_str(), std::ios_base::app); 
+	power_stat_file << S_id << "," << sampleEnergy /(double) ElapsedCycle << "," << sapRead_E /(double) ElapsedCycle << "," 
+	                << sapWrite_E /(double) ElapsedCycle << "," << sapACT_E /(double) ElapsedCycle << ","
+	                << sapRef_E /(double) ElapsedCycle << "," << sapPre_E /(double) ElapsedCycle << ","
+	                << sapBack_E /(double) ElapsedCycle << "," << sapIO_E /(double) ElapsedCycle << std::endl;
+	power_stat_file.close();
+
 }
 
 
@@ -652,11 +676,7 @@ void ThermalCalculator::printT()
 	temp_file.open(final_temp_str.c_str()); 
 	temp_file << "layer,x,y,temperature\n"; 
 
-	int numlayer; 
-	if (withLogic)
-		numlayer = z + 2; 
-	else
-		numlayer = z; 
+	int numlayer = (withLogic ? z+logicP_z+1 : z); 
 
 	for (int iz = 0; iz < numlayer; iz ++){
 		for (int iy = 0; iy < y; iy ++){
@@ -730,13 +750,13 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 	cellE = logicE / x / y; 
 	//cellE_ratio = logicE / val;
 
-	for (int l = 0; l < z+2; l ++)
+	for (int l = 0; l < z+logicP_z+1; l ++)
 	{
-		if (l == z+1)
+		if (l >= z+1) // for multi-layer, all the CPU layers have the same power profile
 		{
 			for (int i = 0; i < x; i ++)
 				for (int j = 0; j < y; j ++)
-					newP[i][j][l] = new_logicP_map[i][j] * (double) ElapsedCycle  * CPU_CLK_PERIOD / tCK;
+					newP[i][j][l] = new_logicP_map[i][j] * (double) ElapsedCycle;
 		}
 		else if (l == z)
 		{
@@ -771,7 +791,7 @@ void ThermalCalculator::calcT(uint64_t cur_cycle)
 
 	dimX = x; dimZ = y; 
 	if (withLogic){
-		numP = z + 2; 
+		numP = z + logicP_z+1; 
 		genTotalP(true, cur_cycle);
 	}
 	else{
@@ -793,14 +813,14 @@ void ThermalCalculator::calcT(uint64_t cur_cycle)
     	for (i = 0; i < dimX; i ++)
     		for (j = 0; j < dimZ; j ++)
     			for (l = 0; l < numP; l ++)
-    				powerM[i][j][l] = accu_Pmap_wLogic[i][j][l] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK; 
+    				powerM[i][j][l] = accu_Pmap_wLogic[i][j][l] / (double) ElapsedCycle; 
     }
     else
     {
     	for (i = 0; i < dimX; i ++)
     		for (j = 0; j < dimZ; j ++)
     			for (l = 0; l < numP; l ++)
-    				powerM[i][j][l] = accu_Pmap[i][j][l] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK; 
+    				powerM[i][j][l] = accu_Pmap[i][j][l] / (double) ElapsedCycle; 
     }
 
 
@@ -840,7 +860,7 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 	printSamplePower2(power_epoch, S_id); 
 
 	cout << "\ntime = " << float(clock() - t)/CLOCKS_PER_SEC << " [s]\n";  
-	cout << "========= solve for Sample " << S_id << "==== Current time is " << power_epoch * (S_id+1) * CPU_CLK_PERIOD * 1e-9 << "[s] ================\n";
+	cout << "========= solve for Sample " << S_id << "==== Current time is " << power_epoch * (S_id+1) * tCK * 1e-9 << "[s] ================\n";
 
 	t = clock(); 
 	//bool withLogic = true;
@@ -862,7 +882,7 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 
 void ThermalCalculator::calc_trans_T()
 {
-	double time = power_epoch * CPU_CLK_PERIOD * 1e-9; // [s]
+	double time = power_epoch * tCK * 1e-9; // [s]
 	// withLogic = 1: calculate with logic layer 
 	// withLogic = 0: calculate only the DRAM layers 
 	double ***powerM; 
@@ -872,12 +892,8 @@ void ThermalCalculator::calc_trans_T()
 	uint64_t ElapsedCycle = power_epoch;
 
 	dimX = x; dimZ = y; 
-	if (withLogic){
-		numP = z + 2; 
-	}
-	else{
-		numP = z; 
-	}
+	numP = (withLogic ? z+logicP_z+1 : z);
+
 
 	if ( !(powerM = (double ***)malloc(dimX * sizeof(double **))) ) printf("Malloc fails for powerM[].\n");
     for (i = 0; i < dimX; i++)
@@ -894,14 +910,14 @@ void ThermalCalculator::calc_trans_T()
     	for (i = 0; i < dimX; i ++)
     		for (j = 0; j < dimZ; j ++)
     			for (l = 0; l < numP; l ++)
-    				powerM[i][j][l] = cur_Pmap_wLogic[i][j][l] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK; 
+    				powerM[i][j][l] = cur_Pmap_wLogic[i][j][l] / (double) ElapsedCycle; 
     }
     else
     {
     	for (i = 0; i < dimX; i ++)
     		for (j = 0; j < dimZ; j ++)
     			for (l = 0; l < numP; l ++)
-    				powerM[i][j][l] = cur_Pmap[i][j][l] / (double) ElapsedCycle  / CPU_CLK_PERIOD * tCK; 
+    				powerM[i][j][l] = cur_Pmap[i][j][l] / (double) ElapsedCycle; 
     }
 
     /*double grid_size = 200e-6; // randomly choose a value
@@ -926,12 +942,8 @@ void ThermalCalculator::calcMidx()
 	int dimX, dimZ, numP;
 
 	dimX = x; dimZ = y; 
-	if (withLogic){
-		numP = z + 2; 
-	}
-	else{
-		numP = z; 
-	}
+	numP = (withLogic ? z+logicP_z+1 : z);
+
 
 	/*double grid_size = 200e-6; 
 	double W, L; 
