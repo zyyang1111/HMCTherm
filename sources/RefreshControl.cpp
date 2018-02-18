@@ -125,13 +125,19 @@ void RFControl::UpdateRetT(int vault, int bank, int row_s, int row_e, int T)
 
 	for (int ir = row_s; ir < row_e; ir ++)
 	{
-		RetT[vault][bank][ir] = exp((Tref + T0)/(T + T0) * log(RetT_ref[vault][bank][ir]));
-		//cout << "RetT_ref = " << RetT_ref[vault][bank][ir] << "; RetT = " << RetT[vault][bank][ir] << endl;
-		// update RetTCountDown_r
-		p = log(RetT[vault][bank][ir]) / log(2); 
-		//cout << "p = " << p << endl; 
-		RetTCountDown_r[vault][bank][ir] = min(exp(log(2) * (p-minRefT)) - 1, (double) maxRefT);
-		//cout << "count down = " << RetTCountDown_r[vault][bank][ir] << endl;
+		if (RetT_ref[vault][bank][ir] == 0){
+			RetT[vault][bank][ir] = 0;
+			RetTCountDown_r[vault][bank][ir];
+		}
+		else{
+			RetT[vault][bank][ir] = exp((Tref + T0)/(T + T0) * log(RetT_ref[vault][bank][ir]));
+			//cout << "RetT_ref = " << RetT_ref[vault][bank][ir] << "; RetT = " << RetT[vault][bank][ir] << endl;
+			// update RetTCountDown_r
+			p = log(RetT[vault][bank][ir]) / log(2); 
+			//cout << "p = " << p << endl; 
+			RetTCountDown_r[vault][bank][ir] = min(exp(log(2) * (p-minRefT)) - 1, (double) maxRefT);
+			//cout << "count down = " << RetTCountDown_r[vault][bank][ir] << endl;
+		}
 	}
 }
 
@@ -141,8 +147,13 @@ void RFControl::IniRetCountD()
 	for (int iv = 0; iv < NUM_VAULTS; iv ++){
 		for (int ib = 0; ib < NUM_BANKS; ib ++){
 			for (int ir = 0; ir < NUM_ROWS; ir ++){
-				p = log(RetT[iv][ib][ir]) / log(2); 
-				RetTCountDown_r[iv][ib][ir] = min(exp(log(2) * (p-minRefT)) - 1, (double) maxRefT); 
+				if (RetT[iv][ib][ir] ==0){
+					RetTCountDown_r[iv][ib][ir] = 0;
+				}
+				else{
+					p = log(RetT[iv][ib][ir]) / log(2); 
+					RetTCountDown_r[iv][ib][ir] = min(exp(log(2) * (p-minRefT)) - 1, (double) maxRefT); 
+				}
 				RetTCountDown[iv][ib][ir] = RetTCountDown_r[iv][ib][ir];
 			}
 		}

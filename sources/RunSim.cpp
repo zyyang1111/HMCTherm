@@ -395,7 +395,7 @@ int main(int argc, char **argv)
 				//transactionBuffers.clear();
 				//delete casHMCWrapper;
 				//casHMCWrapper = NULL;
-				cout << "cpuCycle = " << cpuCycle << endl;
+				cout << "\n\ncpuCycle = " << cpuCycle << endl;
 				break;
 			}
 		}

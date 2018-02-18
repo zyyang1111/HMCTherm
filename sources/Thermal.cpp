@@ -859,7 +859,7 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 	genTotalP(false, power_epoch); 
 	printSamplePower2(power_epoch, S_id); 
 
-	cout << "\ntime = " << float(clock() - t)/CLOCKS_PER_SEC << " [s]\n";  
+	cout << "time = " << float(clock() - t)/CLOCKS_PER_SEC << " [s]\n";  
 	cout << "========= solve for Sample " << S_id << "==== Current time is " << power_epoch * (S_id+1) * tCK * 1e-9 << "[s] ================\n";
 
 	t = clock(); 
@@ -1102,6 +1102,7 @@ void ThermalCalculator::printRT(uint64_t cur_cycle)
 
 	cur_file.open(dump_curCyc_str.c_str());
 	cur_file << cur_cycle << endl;
+	cur_file << num_refresh << endl;
 	cur_file.close(); 
 
 }
