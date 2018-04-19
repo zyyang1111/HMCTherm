@@ -47,6 +47,8 @@ uint64_t clk_cycle_dist = 0;
 int num_refresh_save = 0;
 // define CPU_CLK_PERIOD here
 double CPU_CLK_PERIOD = 0.5; 
+// define the start processing line in the trace file 
+uint64_t start_line_in_file = 0; 
 
 
 // yzy : 2/7/2018
@@ -199,12 +201,13 @@ int main(int argc, char **argv)
 			{"file",  required_argument, 0, 'f'},
 			{"CPU_CLK_PERIOD", required_argument, 0, 'b'},
 			{"continue", required_argument, 0, 'k'},
+			{"start_line_num", required_argument, 0, 'g'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:b:k:h", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:b:k:g:h", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -226,6 +229,9 @@ int main(int argc, char **argv)
 				break;
 			case 'c':
 				numSimCycles = atol(optarg);
+				break;
+			case 'g':
+				start_line_in_file = atol(optarg);
 				break;
 			case 'e':
 				PowerEpoch = atol(optarg);
@@ -320,6 +326,7 @@ int main(int argc, char **argv)
 	}
 
 	std::cout << "CPU_CLK_PERIOD = " << CPU_CLK_PERIOD << std::endl;
+	std::cout << "start_line_in_file = " << start_line_in_file << std::endl;
 	//std::cout << "Now, ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
 	//cout << "Now: NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
     //cout << "Now: NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
@@ -346,6 +353,18 @@ int main(int argc, char **argv)
 			ERROR(" == Error - Could not open trace file ["<<traceFileName<<"]");
 			exit(0);
 		}
+		// yzy: add this to skip certain lines in the tracefile 
+		uint64_t cpuCycle_t = 0;
+		for (cpuCycle_t=0; cpuCycle_t<start_line_in_file; cpuCycle_t++){
+			if (!traceFile.eof()){
+				getline(traceFile, line); 
+			}
+		}
+		if (cpuCycle_t < start_line_in_file-1){
+			traceFile.close(); 
+			traceFile.open(traceFileName.c_str());
+		}
+
 		for(uint64_t cpuCycle=0; cpuCycle<numSimCycles; cpuCycle++) {
 			if(!pendingTran) { // if there is no pending transaction... 
 				if(!traceFile.eof()) {

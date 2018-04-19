@@ -177,6 +177,8 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 			power_stat_file.open(power_stat_str.c_str()); power_stat_file << "S_id,tot,Read,Write,ACT,Ref,Pre,Back,IO\n"; power_stat_file.close();
 		}
 
+		cout << "sample_id = " << sample_id << endl;
+
 		t = clock();
 	}
 
@@ -296,16 +298,23 @@ int ThermalCalculator::square_array(int total_grids_)
 
 void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
 {
-	if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)){
-		if (cur_cycle > (sample_id+1) * power_epoch)
+	if (cont_bool){
+		//cout << "hi refresh!\n";
+	}
+
+	if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch) && cur_cycle <= clk_cycle_dist){
+		if (cur_cycle > (sample_id+1) * power_epoch){
+			//cout << "sample_id = " << sample_id << "; cur_cycle = " << cur_cycle << endl;
 			sample_id = sample_id + 1;
+		}
 		return; 
 	}
 	//cout << "addPower_refresh\n";
 	num_refresh ++;
+	//cout << "num_refresh = " << num_refresh << endl;
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
-		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "\n"; 
+		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
 		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
@@ -315,6 +324,7 @@ void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, u
     sampleEnergy += energy_t_ * Vdd / 1000.0;
     totRef_E += energy_t_ * Vdd / 1000.0; 
     sapRef_E += energy_t_ * Vdd / 1000.0;
+    //cout << "sapRef_E = " << sapRef_E << endl; 
     
     vault_usage_multi[vault_id_] ++; 
     double energy; 
@@ -341,16 +351,18 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 	//std::cout << "energy = " << energy_t_ << std::endl; 
 	//std::cout << "(vault, bank, row, col) = " << "( " << vault_id_ << ", " << bank_id_ << ", " << row_id_ << ", " << col_id_ << " )" << std::endl;
 	//std::cout << "single_bank is " << single_bank << std::endl;
-    if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)){
-		if (cur_cycle > (sample_id+1) * power_epoch)
+    if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)  && cur_cycle <= clk_cycle_dist){
+		if (cur_cycle > (sample_id+1) * power_epoch){
+			//cout << "sample_id = " << sample_id << "; cur_cycle = " << cur_cycle << endl;
 			sample_id = sample_id + 1;
+		}
 		return; 
 	}
 
 	////// determine whether the sampling period ends //////////////
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
-		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "\n"; 
+		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
 		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
@@ -442,15 +454,17 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 
 void ThermalCalculator::addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
 {
-	if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)){
-		if (cur_cycle > (sample_id+1) * power_epoch)
+	if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)  && cur_cycle <= clk_cycle_dist){
+		if (cur_cycle > (sample_id+1) * power_epoch){
+			//cout << "sample_id = " << sample_id << "; cur_cycle = " << cur_cycle << endl;
 			sample_id = sample_id + 1;
+		}
 		return; 
 	}
 	////// determine whether the sampling period ends //////////////
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
-		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "\n"; 
+		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
 		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
@@ -658,6 +672,7 @@ void ThermalCalculator::printSamplePower2(uint64_t cur_cycle, unsigned S_id){
 
 
 	// print the power statics
+	std::cout << "sapRef_E = " << sapRef_E << "; ElapsedCycle = " << ElapsedCycle << std::endl;
 	std::ofstream power_stat_file; 
 	power_stat_file.open(power_stat_str.c_str(), std::ios_base::app); 
 	power_stat_file << S_id << "," << sampleEnergy /(double) ElapsedCycle << "," << sapRead_E /(double) ElapsedCycle << "," 
@@ -1044,6 +1059,7 @@ int ThermalCalculator::get_z()
 }
 double ThermalCalculator::get_totalE()
 {
+	std::cout << "Total Energy = " << totalEnergy << std::endl;
 	return totalEnergy;
 }
 double ThermalCalculator::get_IOE()

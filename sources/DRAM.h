@@ -44,6 +44,7 @@ public:
 	void Update();
 	void UpdateState();
 	void PrintState();
+	uint64_t get_currentclk();
 
 	//
 	//Fields
@@ -61,6 +62,7 @@ public:
 
     // for calculating power
 	ThermalCalculator *thermalCalPtr;
+	uint64_t prev_state_cycle; 
 };
 
 }

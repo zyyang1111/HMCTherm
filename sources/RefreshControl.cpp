@@ -13,7 +13,7 @@ extern int cont_bool;
 RFControl::RFControl():
 	Tref(85.0),
 	minRefT(5),
-	maxRefT(9)
+	maxRefT(8)
 {
 	RetT_ref = vector<vector<vector<double> > > (NUM_VAULTS, vector<vector<double> > (NUM_BANKS, vector<double> (NUM_ROWS, 0)));
 	RetT = vector<vector<vector<double> > > (NUM_VAULTS, vector<vector<double> > (NUM_BANKS, vector<double> (NUM_ROWS, 0)));
@@ -144,6 +144,7 @@ void RFControl::UpdateRetT(int vault, int bank, int row_s, int row_e, int T)
 void RFControl::IniRetCountD()
 {
 	int p; 
+	//vector<int> RetTCD_dist(8, 0);
 	for (int iv = 0; iv < NUM_VAULTS; iv ++){
 		for (int ib = 0; ib < NUM_BANKS; ib ++){
 			for (int ir = 0; ir < NUM_ROWS; ir ++){
@@ -153,11 +154,18 @@ void RFControl::IniRetCountD()
 				else{
 					p = log(RetT[iv][ib][ir]) / log(2); 
 					RetTCountDown_r[iv][ib][ir] = min(exp(log(2) * (p-minRefT)) - 1, (double) maxRefT); 
+					//RetTCD_dist[RetTCountDown_r[iv][ib][ir]-1] ++; 
 				}
 				RetTCountDown[iv][ib][ir] = RetTCountDown_r[iv][ib][ir];
 			}
 		}
 	}
+
+	//cout << "RetTCountDown Distribution: \n";
+	//for (int i = 0; i < RetTCD_dist.size(); i ++){
+	//	cout << i+1 << " : " << RetTCD_dist[i] << endl;
+	//}
+
 } 
 
 bool RFControl::UpdateCountD(int vault, int bank, int row)

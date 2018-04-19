@@ -18,7 +18,8 @@ namespace CasHMC
 DRAM::DRAM(ofstream &debugOut_, ofstream &stateOut_, unsigned id, VaultController *contP, ThermalCalculator *tcPtr):
 	SimulatorObject(debugOut_, stateOut_),
 	DRAMID(id),
-	vaultContP(contP)
+	vaultContP(contP),
+	prev_state_cycle(0)
 {
 	classID << DRAMID;
 	header = "        (DR_" + classID.str() + ")";
@@ -199,6 +200,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
             energy_t = ((double)IDD5 - (double)IDD3N) * (double)tRFC;
 
 			for(int b=0; b<NUM_BANKS; b++) {
+				/*
 				bool refresh_flag = false; 
 				for (int ir = row_id_refresh; ir < row_id_refresh+REFRESH_ROWNUM; ir ++){
 					if (thermalCalPtr->RefreshCont.UpdateCountD(vault_id, b, ir)){
@@ -219,7 +221,17 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 					bankStates[b]->lastCommand = REFRESH;
 					bankStates[b]->stateChangeCountdown = tRFC;
 				}
+				*/
 
+
+				
+				thermalCalPtr->addPower_refresh(energy_t, vault_id, b, row_id_refresh, 0, currentClockCycle); 
+
+				bankStates[b]->nextActivate = currentClockCycle + tRFC;
+				bankStates[b]->currentBankState = REFRESHING;
+				bankStates[b]->lastCommand = REFRESH;
+				bankStates[b]->stateChangeCountdown = tRFC;
+	            
 
 
 				//thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle); 
@@ -248,9 +260,11 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 //
 bool DRAM::powerDown()
 {
+	//cout << "vault " << vaultContP->vaultContID << ": Power Down -- " << currentClockCycle << endl;
 	unsigned layer, x, y; // 3D physial locations
     unsigned vault_id; // memory address, readable convenience 
     double energy_t; 
+    uint64_t elapse_time; 
 
     vault_id = vaultContP->vaultContID; 
 
@@ -263,7 +277,12 @@ bool DRAM::powerDown()
 		}
 	}
 	if(allIdle) {
-        energy_t = energy_t = (double)IDD3N / NUM_GRIDS_X / NUM_GRIDS_Y/ NUM_BANKS;
+		elapse_time = currentClockCycle - prev_state_cycle; 
+		prev_state_cycle = currentClockCycle; 
+		//if (vault_id == 1)
+			//cout << "Vault 1: Power Down -- time = " << elapse_time << "; cur_cycle = " << currentClockCycle << endl;
+
+        energy_t = energy_t = (double)IDD2P * (double)elapse_time / NUM_GRIDS_X / NUM_GRIDS_Y/ NUM_BANKS; // previous state is powerUp
         //std::cout << "powerDown: Energy_t = " << energy_t << std::endl; 
 
 		for(int b=0; b<NUM_BANKS; b++) {
@@ -284,13 +303,20 @@ bool DRAM::powerDown()
 //
 void DRAM::powerUp()
 {
+	//cout << "vault " << vaultContP->vaultContID << ": Power Up -- " << currentClockCycle << endl;
 	unsigned layer, x, y; // 3D physial locations
     unsigned vault_id; // memory address, readable convenience 
     double energy_t; 
+    uint64_t elapse_time;
 
     vault_id = vaultContP->vaultContID; 
 
-    energy_t = (double)IDD2P / NUM_GRIDS_X / NUM_GRIDS_Y / NUM_BANKS;
+    elapse_time = currentClockCycle - prev_state_cycle; 
+    prev_state_cycle = currentClockCycle; 
+    //if (vault_id == 1)
+		//cout << "Vault 1: Power Up -- time = " << elapse_time << "; cur_cycle = " << currentClockCycle << endl;
+
+    energy_t = (double)IDD3N * (double)elapse_time / NUM_GRIDS_X / NUM_GRIDS_Y / NUM_BANKS;
     //std::cout << "powerUp: Energy_t = " << energy_t << std::endl; 
 
 	for(int b=0; b<NUM_BANKS; b++) {
@@ -394,6 +420,11 @@ void DRAM::PrintState()
 		}
 		STATEN(endl);
 	}
+}
+
+uint64_t DRAM::get_currentclk()
+{
+	return currentClockCycle;
 }
 
 } //namespace CasHMC
