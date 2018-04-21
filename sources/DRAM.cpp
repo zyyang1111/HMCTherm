@@ -200,31 +200,7 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
             energy_t = ((double)IDD5 - (double)IDD3N) * (double)tRFC;
 
 			for(int b=0; b<NUM_BANKS; b++) {
-				/*
-				bool refresh_flag = false; 
-				for (int ir = row_id_refresh; ir < row_id_refresh+REFRESH_ROWNUM; ir ++){
-					if (thermalCalPtr->RefreshCont.UpdateCountD(vault_id, b, ir)){
-						//cout << "refresh!\n";
-						refresh_flag = true; 
-						//cout << "Issue refresh\n";
-						break;
-					}
-				}
-				if (refresh_flag){
-					for (int ir = row_id_refresh; ir < row_id_refresh+REFRESH_ROWNUM; ir ++){
-						thermalCalPtr->RefreshCont.ResetCountD(vault_id, b, ir);
-					}
-					thermalCalPtr->addPower_refresh(energy_t, vault_id, b, row_id_refresh, 0, currentClockCycle); 
 
-					bankStates[b]->nextActivate = currentClockCycle + tRFC;
-					bankStates[b]->currentBankState = REFRESHING;
-					bankStates[b]->lastCommand = REFRESH;
-					bankStates[b]->stateChangeCountdown = tRFC;
-				}
-				*/
-
-
-				
 				thermalCalPtr->addPower_refresh(energy_t, vault_id, b, row_id_refresh, 0, currentClockCycle); 
 
 				bankStates[b]->nextActivate = currentClockCycle + tRFC;
@@ -232,14 +208,6 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 				bankStates[b]->lastCommand = REFRESH;
 				bankStates[b]->stateChangeCountdown = tRFC;
 	            
-
-
-				//thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle); 
-
-				//bankStates[b]->nextActivate = currentClockCycle + tRFC;
-				//bankStates[b]->currentBankState = REFRESHING;
-				//bankStates[b]->lastCommand = REFRESH;
-				//bankStates[b]->stateChangeCountdown = tRFC;
 			}
 			DEBUG(ALI(18)<<header<<ALI(15)<<*recvCMD<<"      next ACTIVATE time : "<<bankStates[recvCMD->bank]->nextActivate<<" [HMC clk]");
 			delete recvCMD;
@@ -250,9 +218,6 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			break;
 	}
 
-    //if (recvCMD->commandType != REFRESH)
-     //std::cout << "current clock cycle = " << currentClockCycle << ": ( " << vault_id << ", " << bank_id << ", " << row_id << ", " << col_id << " )" << "Energy = " << energy_t << " " << recvCMD->commandType << std::endl; 
-	//std::cout << "receive CMD: Energy_t = " << energy_t << std::endl;
 }
 
 //
@@ -260,7 +225,6 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 //
 bool DRAM::powerDown()
 {
-	//cout << "vault " << vaultContP->vaultContID << ": Power Down -- " << currentClockCycle << endl;
 	unsigned layer, x, y; // 3D physial locations
     unsigned vault_id; // memory address, readable convenience 
     double energy_t; 
@@ -279,11 +243,8 @@ bool DRAM::powerDown()
 	if(allIdle) {
 		elapse_time = currentClockCycle - prev_state_cycle; 
 		prev_state_cycle = currentClockCycle; 
-		//if (vault_id == 1)
-			//cout << "Vault 1: Power Down -- time = " << elapse_time << "; cur_cycle = " << currentClockCycle << endl;
 
         energy_t = energy_t = (double)IDD2P * (double)elapse_time / NUM_GRIDS_X / NUM_GRIDS_Y/ NUM_BANKS; // previous state is powerUp
-        //std::cout << "powerDown: Energy_t = " << energy_t << std::endl; 
 
 		for(int b=0; b<NUM_BANKS; b++) {
             thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle, 0); 
@@ -303,7 +264,6 @@ bool DRAM::powerDown()
 //
 void DRAM::powerUp()
 {
-	//cout << "vault " << vaultContP->vaultContID << ": Power Up -- " << currentClockCycle << endl;
 	unsigned layer, x, y; // 3D physial locations
     unsigned vault_id; // memory address, readable convenience 
     double energy_t; 
@@ -313,11 +273,8 @@ void DRAM::powerUp()
 
     elapse_time = currentClockCycle - prev_state_cycle; 
     prev_state_cycle = currentClockCycle; 
-    //if (vault_id == 1)
-		//cout << "Vault 1: Power Up -- time = " << elapse_time << "; cur_cycle = " << currentClockCycle << endl;
 
     energy_t = (double)IDD3N * (double)elapse_time / NUM_GRIDS_X / NUM_GRIDS_Y / NUM_BANKS;
-    //std::cout << "powerUp: Energy_t = " << energy_t << std::endl; 
 
 	for(int b=0; b<NUM_BANKS; b++) {
         thermalCalPtr->addPower(energy_t, vault_id, b, 0, 0, false, currentClockCycle, 0); 

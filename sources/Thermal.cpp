@@ -19,7 +19,6 @@ extern "C" double *calculate_Cap_array(double W, double Lc, int numP, int dimX, 
 extern "C" double *initialize_Temperature(double W, double Lc, int numP, int dimX, int dimZ); 
 extern "C" double get_maxT(double *Tc, int Tsize);
 
-extern string logicPFileName; // the name of the file given the power profiles for the logic layer(s)
 extern string resultdir; // the directory name for storing the result
 extern long PowerEpoch; 
 // used for control the start point when the simulation is restarted
@@ -29,19 +28,15 @@ extern long PowerEpoch;
 extern uint64_t clk_cycle_dist; 
 extern int cont_bool; 
 extern int num_refresh_save; 
-extern double CPU_CLK_PERIOD;
 
 ThermalCalculator::ThermalCalculator(bool withLogic_):
 	totalEnergy(0.0),
 	sampleEnergy(0.0),
 	sample_id(0),
-	withLogic(withLogic_),
-	RefreshCont(RFControl())
+	withLogic(withLogic_)
 	{
 		num_refresh = num_refresh_save; 
-		// if start from the scratch, num_refresh_save = 0
-		///////// read power of the logic layer from the file //////////
-		ReadlogicP();
+
 
 		totRead_E = 0; totWrite_E = 0; totRef_E = 0; totACT_E = 0; totPre_E = 0; totBack_E = 0;
 	    sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
@@ -85,11 +80,11 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 
 		// initialize the accumulative power maps 
 		accu_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		accu_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+logicP_z+1, 0))); 
+		accu_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+1, 0))); 
 		// memory logic layer + processor layer
-		// the number of processor layers is determined by logicP_z
+
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		cur_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+logicP_z+1, 0)));
+		cur_Pmap_wLogic = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z+1, 0)));
 
 		vault_usage_single = vector<int> (NUM_VAULTS, 0);
 		vault_usage_multi = vector<int> (NUM_VAULTS, 0);
@@ -109,9 +104,6 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 		power_stat_str = resultdir + "power_statics_trace.csv";
 		avg_power_str = resultdir + "Average_Power_Profile.csv";
 		final_temp_str = resultdir + "static_temperature.csv"; 
-		debug_power_resize_str = resultdir + "Debug_power_profile_resize.csv";
-		debug_power_str = resultdir + "Debug_power_profile.csv"; 
-		dump_RT_str = resultdir + "RetTCountDown_file.txt";
 		dump_curCyc_str = resultdir + "currentClockCycle_file.txt";
 		dump_Ttrans_str = resultdir + "Ttrans_file.txt"; 
 		dump_accuP_str = resultdir + "accuP_file.txt";
@@ -119,12 +111,6 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 		dump_Pstat_str = resultdir + "Pstat_file.txt";
 
 
-
-		/* print the header for csv files */
-		//std::ofstream power_file; 
-		//std::ofstream temp_file; 
-		//power_file.open(power_trace_str.c_str()); power_file << "S_id,layer,x,y,power\n"; power_file.close();
-		//temp_file.open(temp_trace_str.c_str()); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
 
 		// if cont_bool == 1, reload the PTdata: T_trans, accu_Pmap, cur_Pmap
 		if (cont_bool)
@@ -177,7 +163,7 @@ void ThermalCalculator::Dump_PTdata()
 	curP_file.open(dump_curP_str.c_str()); 
 	Pstat_file.open(dump_Pstat_str.c_str());
 
-	int numP = ( withLogic ? z+logicP_z+1 : z); 
+	int numP = ( withLogic ? z+1 : z); 
 	
 	for (int i = 0; i < x * y * (numP*3+1); i++)
 		Trans_file << T_trans[i] << " "; 
@@ -207,7 +193,7 @@ void ThermalCalculator::Reload_PTdata()
 	curP_file.open(dump_curP_str.c_str()); 
 	Pstat_file.open(dump_Pstat_str.c_str());
 
-	int numP = ( withLogic ? z+logicP_z+1 : z);
+	int numP = ( withLogic ? z+1 : z);
 
 	for (int i = 0; i < x * y * (numP*3+1); i ++)
 		Trans_file >> T_trans[i]; 
@@ -435,14 +421,7 @@ void ThermalCalculator::printP_new(uint64_t cur_cycle){
 			power_file << "LOGIC," << z << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][z] / (double) ElapsedCycle << ",-1,-1," << std::endl;
 		}
 	}
-	// for multi-layer : add iz from z+1 to z+logicP_z
-	for (int iz = z+1; iz < z+logicP_z+1; iz ++){
-		for (int iy = 0; iy < y; iy ++){
-			for (int ix = 0; ix < x; ix ++){
-				power_file << "CPU," << iz << "," << ix << "," << iy << "," << accu_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle << ",-1,-1," << std::endl;
-			}
-		}
-	}
+
 	power_file.close();
 }
 
@@ -453,7 +432,7 @@ void ThermalCalculator::printTtrans(unsigned S_id)
 	int numP, dimX, dimZ; 
 
 	dimX = x; dimZ = y; 
-	numP = (withLogic ? z+logicP_z+1 : z);
+	numP = (withLogic ? z+1 : z);
 
 	double maxTT; maxTT = get_maxT(T_trans, dimX*dimZ*(numP*3+1));
     std::cout << "Now maxT = " << maxTT - T0 << std::endl;
@@ -492,7 +471,7 @@ void ThermalCalculator::printSamplePower(uint64_t cur_cycle, unsigned S_id){
 	std::ofstream power_file; 
 	power_file.open(power_trace_str.c_str(), std::ios_base::app);
 	if (withLogic){
-		for (int iz = 0; iz < z+logicP_z+1; iz ++){
+		for (int iz = 0; iz < z+1; iz ++){
 			for (int iy = 0; iy < y; iy ++){
 				for (int ix = 0; ix < x; ix ++){
 					power_file << S_id << "," << iz << "," << ix << "," << iy << "," << cur_Pmap_wLogic[ix][iy][iz] / (double) ElapsedCycle << std::endl;
@@ -533,7 +512,7 @@ void ThermalCalculator::printT()
 	temp_file.open(final_temp_str.c_str()); 
 	temp_file << "layer,x,y,temperature\n"; 
 
-	int numlayer = (withLogic ? z+logicP_z+1 : z); 
+	int numlayer = (withLogic ? z+1 : z); 
 
 	for (int iz = 0; iz < numlayer; iz ++){
 		for (int iy = 0; iy < y; iy ++){
@@ -569,25 +548,8 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 	std::vector<std::vector<std::vector<double> > > origP; 
 	std::vector<std::vector<std::vector<double> > > newP = accu_Pmap_wLogic; // just initilize it 
 
-	std::vector<std::vector<double> > new_logicP_map; 
-	new_logicP_map = imresize2D(logicP_map, logicP_x, logicP_y, x, y);
-
-
-	std::ofstream power_file; 
-	power_file.open(debug_power_resize_str.c_str()); 
-	power_file << "x,y,power\n";
-	for (int i = 0; i < x; i ++){
-		for (int j = 0; j < y; j ++){
-			power_file << i << "," << j << "," << new_logicP_map[i][j] << std::endl;
-		}
-	}
-	power_file.close();
-
 
 	double val = 0.0;
-	for (int i = 0; i < x; i ++)
-		for (int j = 0; j < y; j++)
-			val += new_logicP_map[i][j];
 
 	if (accuP)
 	{
@@ -603,15 +565,9 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 	}
 	cellE = logicE / x / y; 
 
-	for (int l = 0; l < z+logicP_z+1; l ++)
+	for (int l = 0; l < z+1; l ++)
 	{
-		if (l >= z+1) // for multi-layer, all the CPU layers have the same power profile
-		{
-			for (int i = 0; i < x; i ++)
-				for (int j = 0; j < y; j ++)
-					newP[i][j][l] = new_logicP_map[i][j] * (double) ElapsedCycle;
-		}
-		else if (l == z)
+		if (l == z)
 		{
 			for (int i = 0; i < x; i ++)
 				for (int j = 0; j < y; j ++)
@@ -644,7 +600,7 @@ void ThermalCalculator::calcT(uint64_t cur_cycle)
 
 	dimX = x; dimZ = y; 
 	if (withLogic){
-		numP = z + logicP_z+1; 
+		numP = z+1; 
 		genTotalP(true, cur_cycle);
 	}
 	else{
@@ -720,7 +676,7 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 
 	/////////////// Update the Dynamic Management Information ///////////////
 	cout << "num_refresh = " << num_refresh << endl;
-	UpdateRefreshCont(); 
+
 
 
 }
@@ -738,7 +694,7 @@ void ThermalCalculator::calc_trans_T()
 	uint64_t ElapsedCycle = power_epoch;
 
 	dimX = x; dimZ = y; 
-	numP = (withLogic ? z+logicP_z+1 : z);
+	numP = (withLogic ? z+1 : z);
 
 
 	if ( !(powerM = (double ***)malloc(dimX * sizeof(double **))) ) printf("Malloc fails for powerM[].\n");
@@ -774,8 +730,6 @@ void ThermalCalculator::calc_trans_T()
 
     T_trans = transient_thermal_solver(powerM, ChipX, ChipZ, numP, dimX, dimZ, Midx, MidxSize, Cap, CapSize, time, time_iter, T_trans);
 
-    //double maxTT; maxTT = get_maxT(T_trans, dimX*dimZ*(numP*3+1));
-    //std::cout << "Now maxT = " << maxTT - T0 << std::endl;
 
 }
 
@@ -784,13 +738,8 @@ void ThermalCalculator::calcMidx()
 	int dimX, dimZ, numP;
 
 	dimX = x; dimZ = y; 
-	numP = (withLogic ? z+logicP_z+1 : z);
+	numP = (withLogic ? z+1 : z);
 
-
-	/*double grid_size = 200e-6; 
-	double W, L; 
-	W = grid_size * (double) dimX; 
-	L = grid_size * (double) dimZ; */
 
 	layerP_ = vector<int> (numP, 0);
 	for(int l = 0; l < numP; l++)
@@ -830,41 +779,6 @@ void ThermalCalculator::calculate_time_step()
 }
 
 
-void ThermalCalculator::ReadlogicP()
-{
-	ifstream filein;
-	filein.open(logicPFileName.c_str());
-	double totalpower; 
-
-	filein >> logicP_x; 
-	filein >> logicP_y; 
-	filein >> logicP_z; 
-	cout << "logicP_z = " << logicP_z << endl;
-	logicP_map = vector<vector<double> > (logicP_x, vector<double> (logicP_y, 0));
-	for (int j = 0; j < logicP_y; j ++)
-		for (int i = 0; i < logicP_x; i ++)
-			filein >> logicP_map[i][j];
-
-	totalpower = 0.0; 
-	for (int j = 0; j < logicP_y; j ++)
-		for (int i = 0; i < logicP_x; i ++)
-			totalpower += logicP_map[i][j];
-
-	cout << "totalpower = " << totalpower << endl;
-
-	std::ofstream power_file; 
-	power_file.open(debug_power_str.c_str()); 
-	power_file << "x,y,power\n";
-	for (int i = 0; i < logicP_x; i ++){
-		for (int j = 0; j < logicP_y; j ++){
-			power_file << i << "," << j << "," << logicP_map[i][j] << std::endl;
-		}
-	}
-	power_file.close();
-
-}
-
-
 int ThermalCalculator::get_x()
 {
 	return x; 
@@ -887,47 +801,9 @@ double ThermalCalculator::get_IOE()
 	return IOEnergy;
 }
 
-/* Methods for the Dynamic Management */
-void ThermalCalculator::UpdateRefreshCont()
-{
-	int vid, bid, rid_s, rid_e; 
-	double T_local; 
-
-	for (int ix = 0; ix < x; ix ++){
-		for (int iy = 0; iy < y; iy ++){
-			for (int iz = 0; iz < z; iz ++){
-				T_local = T_trans[x*y*(layerP_[iz]+1) + iy*x + ix] - T0; 
-				//cout << "\rT = " << T_local << flush; 
-				rev_mapPhysicalLocation(&vid, &bid, &rid_s, &rid_e, iz, ix, iy);
-				RefreshCont.UpdateRetT(vid, bid, rid_s, rid_e, T_local);
-			}
-		}
-	}
-	//cout << endl;
-}
-
 void ThermalCalculator::printRT(uint64_t cur_cycle)
 {
-	cout << "Print Retention Time Count Down\n";
-	//std::ostringstream file_oss; 
-	std::ofstream RT_file;
 	std::ofstream cur_file; 
-
-	RT_file.open(dump_RT_str.c_str()); 
-
-	for (int iv = 0; iv < NUM_VAULTS; iv ++){
-		for (int ib = 0; ib < NUM_BANKS; ib ++){
-			for (int ir = 0; ir < NUM_ROWS; ir ++){
-				RT_file << RefreshCont.RetTCountDown[iv][ib][ir]; 
-				if (ir < NUM_ROWS - 1)
-					RT_file << " ";
-			}
-			if (ib < NUM_BANKS - 1)
-				RT_file << " ";
-		}
-		RT_file << ";\n";
-	}
-	RT_file.close();
 
 	cur_file.open(dump_curCyc_str.c_str());
 	cur_file << cur_cycle << endl;

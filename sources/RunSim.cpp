@@ -35,10 +35,8 @@ double memUtil = 0.1;
 double rwRatio = 80;
 string traceType = "";
 string traceFileName = "";
-string logicPFileName = "";
 string RTFileName = "";
 string resultdir = "";
-string RT_cntdown_str = "";
 vector<Transaction *> transactionBuffers;
 CasHMCWrapper *casHMCWrapper;
 int cont_bool = 0; // 1 --> read continue data
@@ -72,7 +70,6 @@ void help()
 	cout<<"-y (--mat_y) : The number of DRAM cells of a mat in y-direction [Default 512]"<<endl;
 	cout<<"-q (--logicP_file) : CPU power file name"<<endl;
 	cout<<"-d (--result_directory) : Directory name for the results"<<endl;
-	cout<<"-s (--DRAM_refresh_file) : DRAM cell retention time file"<<endl;
 	cout<<"-b (--CPU_CLK_PERIOD) : (ns) The CPU operation period [Default 0.5]"<<endl;
 	cout<<"-k (--cont_bool) : Indicating whether using the intermediate data [Default 0 -- not using]"<<endl;
 	cout<<"-g (--start_line_in_file) : the start line of the memory trace file [Default 0]"<<endl;
@@ -198,9 +195,7 @@ int main(int argc, char **argv)
 			{"mat_x", required_argument, 0, 'x'},
 			{"max_y", required_argument, 0, 'y'},
 			{"rwratio",  required_argument, 0, 'r'},
-			{"logicP_file", required_argument, 0, 'q'},
 			{"result_directory", required_argument, 0, 'd'},
-			{"DRAM_refresh_file", required_argument, 0, 's'},
 			{"file",  required_argument, 0, 'f'},
 			{"CPU_CLK_PERIOD", required_argument, 0, 'b'},
 			{"continue", required_argument, 0, 'k'},
@@ -210,7 +205,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:x:y:r:q:d:s:f:b:k:g:h", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:x:y:r:d:f:b:k:g:h", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -272,28 +267,12 @@ int main(int argc, char **argv)
 					exit(0);
 				}
 				break;
-			case 'q':
-				logicPFileName = string(optarg);
-				if(access(logicPFileName.c_str(), 0) == -1){
-					cout<<endl<<" == -p (--logicP-file) ERROR ==";
-					cout<<endl<<"  There is no logicP file ["<<logicPFileName<<"]"<<endl<<endl;
-					exit(0);
-				}
-				break;
 			case 'd':
 				resultdir = string(optarg);
 				if(access(resultdir.c_str(), 0) == -1){
 					cout<<endl<<" == -d (--result-directory) ERROR ==";
 					cout<<endl<<"  The result directory is not specified ["<<resultdir<<"]"<<endl<<endl;
 					resultdir = "./"; 
-					//exit(0);
-				}
-				break;
-			case 's':
-				RTFileName = string(optarg);
-				if(access(RTFileName.c_str(), 0) == -1){
-					cout<<endl<<" == -d (--DRAM-refresh-file) ERROR ==";
-					cout<<endl<<"  The DRAM refresh file is not specified ["<<RTFileName<<"]"<<endl<<endl;
 					//exit(0);
 				}
 				break;
@@ -317,7 +296,6 @@ int main(int argc, char **argv)
 	}
 
 	if (cont_bool){
-		RT_cntdown_str = resultdir + "RetTCountDown_file.txt";
 		string curclk_str = resultdir + "currentClockCycle_file.txt";
 		ifstream filein;
 		filein.open(curclk_str.c_str());

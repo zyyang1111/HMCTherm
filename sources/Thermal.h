@@ -36,7 +36,6 @@
 #include "ThermalConfig.h"
 #include <vector>
 #include <iostream>
-#include "RefreshControl.h"
 #include <ctime>
 
 namespace CasHMC
@@ -77,8 +76,8 @@ class ThermalCalculator
 	double *T_trans; // for storage, I only use a vector to store the transient temperature 
 
 	// logic power parameters 
-	int logicP_x, logicP_y, logicP_z; 
-	std::vector<std::vector<double> > logicP_map; 
+	//int logicP_x, logicP_y, logicP_z; 
+	//std::vector<std::vector<double> > logicP_map; 
 
 	// transient control parameters
 	unsigned power_epoch; // power sampling period
@@ -91,9 +90,6 @@ class ThermalCalculator
 	std::string power_stat_str; // complete path + file for power statics for each trace
 	std::string avg_power_str; // complete path + file for average power 
 	std::string final_temp_str; // complete path + file for static temperature 
-	std::string debug_power_resize_str; 
-	std::string debug_power_str; 
-	std::string dump_RT_str;
 	std::string dump_curCyc_str;
 	std::string dump_Ttrans_str; 
 	std::string dump_accuP_str; 
@@ -130,7 +126,9 @@ public:
 	//void print_logicP(uint64_t cur_cycle);
 	void printVaultUsage();
 	void genTotalP(bool accuP, uint64_t cur_cycle);
-	void ReadlogicP();
+	void Dump_PTdata();
+	void Reload_PTdata();
+	void printRT(uint64_t cur_cycle);
 
 	std::vector<std::vector<std::vector<double> > > imresize(std::vector<std::vector<std::vector<double> > > InImage, int x_new, int y_new, int z_);
     std::vector<std::vector<double> > imresize2D(std::vector<std::vector<double> > InImage, int x_old, int y_old, int x_new, int y_new);
@@ -157,11 +155,9 @@ public:
     /***********************************************************************/
     /*                   Any Dynamic Management Modules                    */
     /***********************************************************************/
-    RFControl RefreshCont; 
-    void UpdateRefreshCont(); 
-    void printRT(uint64_t cur_cycle);
-    void Dump_PTdata();
-    void Reload_PTdata();
+    //RFControl RefreshCont; 
+    //void UpdateRefreshCont(); 
+    
 
 };
 
