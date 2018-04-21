@@ -34,7 +34,6 @@
 #include "DRAMConfig.h"
 #include "SimConfig.h"
 #include "ThermalConfig.h"
-#include "PDNConfig.h"
 #include <vector>
 #include <iostream>
 #include "RefreshControl.h"
@@ -65,8 +64,8 @@ class ThermalCalculator
 	int num_refresh;
 
 	// statics
-	double totRead_E, totWrite_E, totRef_E, totIO_E, totACT_E, totPre_E, totBack_E; 
-	double sapRead_E, sapWrite_E, sapRef_E, sapIO_E, sapACT_E, sapPre_E, sapBack_E;
+	double totRead_E, totWrite_E, totRef_E, totACT_E, totPre_E, totBack_E; 
+	double sapRead_E, sapWrite_E, sapRef_E, sapACT_E, sapPre_E, sapBack_E;
 
 
 	// temperature variable 
@@ -86,22 +85,7 @@ class ThermalCalculator
 	double max_tp; // maximum time step
 	unsigned sample_id; // index for the sampling nodes
 
-	// PDN parameters 
-	std::vector<int> PDNTSVmap;
-	std::vector<int> PDNC4map;
-	int PDN_x, PDN_y;
-	double ***V_final;
-	double **PDNMidx; 
-	int PDNMidxSize; 
-
-	// transient PDN parameters and variables 
-	std::vector<std::vector<std::vector<double> > > V_onC; 
-	std::vector<std::vector<std::vector<double> > > I_onC_x; 
-	std::vector<std::vector<std::vector<double> > > I_onC_y;
-	std::vector<std::vector<std::vector<double> > > I_onC_z;
-	std::vector<double> V_offC; 
-	std::vector<double> I_offC; 
-
+	// output files string
 	std::string power_trace_str; // complete path + file for power trace
 	std::string temp_trace_str; // complete path + file for temperature trace
 	std::string power_stat_str; // complete path + file for power statics for each trace
@@ -128,7 +112,7 @@ public:
 
 	void addPower_refresh(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle);
 	void addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle, int cmd_type); 
-	void addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle);
+	//void addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle);
 	int square_array(int total_grids_);
 	void mapPhysicalLocation(unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, int *layer, int *row, int *col);
     void rev_mapPhysicalLocation(int *vault_id_, int *bank_id_, int *row_s, int *row_e, int layer, int row, int col);
@@ -148,6 +132,9 @@ public:
 	void genTotalP(bool accuP, uint64_t cur_cycle);
 	void ReadlogicP();
 
+	std::vector<std::vector<std::vector<double> > > imresize(std::vector<std::vector<std::vector<double> > > InImage, int x_new, int y_new, int z_);
+    std::vector<std::vector<double> > imresize2D(std::vector<std::vector<double> > InImage, int x_old, int y_old, int x_new, int y_new);
+
     /***********************************************************************/
     /*                MEHTODS FOR PROCESSING THE TEMPERATURE               */
     /***********************************************************************/
@@ -162,25 +149,10 @@ public:
 
 	// process the transient thermal simulation 
 	void save_sampleP(uint64_t cur_cycle, unsigned S_id);
-	void printSamplePower2(uint64_t cur_cycle, unsigned S_id); // S_id -> sampling id of the current feature map
+	void printSamplePower(uint64_t cur_cycle, unsigned S_id); // S_id -> sampling id of the current feature map
 	void printTtrans(unsigned S_id); 
 	void calculate_time_step();
 
-
-	/***********************************************************************/
-    /*               MEHTODS FOR PROCESSING THE POWER SUPPLY               */
-    /***********************************************************************/
-    void calc_steadyPDN(uint64_t cur_cycle); 
-    std::vector<std::vector<std::vector<double> > > imresize(std::vector<std::vector<std::vector<double> > > InImage, int x_new, int y_new, int z_);
-    std::vector<std::vector<double> > imresize2D(std::vector<std::vector<double> > InImage, int x_old, int y_old, int x_new, int y_new);
-    void calcPDNMidx();
-    void ReadTSVmap();
-    void ReadC4map();
-    void printV();
-    void printResizedP(std::vector<std::vector<std::vector<double> > > P, int dimX, int dimY, int dimZ, uint64_t cur_cycle);
-    ///////////// transient simulation ///////////////
-    void IniTransPDN();
-    void TransPDNsolver();
 
     /***********************************************************************/
     /*                   Any Dynamic Management Modules                    */

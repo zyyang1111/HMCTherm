@@ -4,7 +4,6 @@
 #include "DRAMConfig.h"
 #include "SimConfig.h"
 #include "ThermalConfig.h"
-#include "PDNConfig.h"
 #include <vector>
 #include <iostream>
 #include <cmath>

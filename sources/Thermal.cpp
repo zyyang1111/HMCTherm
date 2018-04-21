@@ -43,62 +43,41 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 		///////// read power of the logic layer from the file //////////
 		ReadlogicP();
 
-		totRead_E = 0; totWrite_E = 0; totRef_E = 0; totIO_E = 0; totACT_E = 0; totPre_E = 0; totBack_E = 0;
-	    sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
+		totRead_E = 0; totWrite_E = 0; totRef_E = 0; totACT_E = 0; totPre_E = 0; totBack_E = 0;
+	    sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
 
 		power_epoch = PowerEpoch; 
 		std::cout << "enter the assignment method\n";
-		std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
 
 		NUM_GRIDS_X = NUM_ROWS / MAT_X; 
 		NUM_GRIDS_Y = NUM_COLS / MAT_Y; 
 
-		if (ARCH_SCHEME == 0)
-		{
-			vault_x = square_array(NUM_VAULTS); 
-			bank_y = square_array(NUM_BANKS); 
 
-			vault_y = NUM_VAULTS / vault_x; 
-			bank_x = NUM_BANKS / bank_y;
-		}
-		else if (ARCH_SCHEME == 1)
-		{
-			int num_bank_per_layer = NUM_BANKS / NUM_LAYERS; 
-			bank_y = num_bank_per_layer; 
-			bank_x = 1; 
-			vault_x = 1; 
-			vault_y = NUM_VAULTS; 
+		int num_bank_per_layer = NUM_BANKS / NUM_LAYERS; 
+		bank_y = num_bank_per_layer; 
+		bank_x = 1; 
+		vault_x = 1; 
+		vault_y = NUM_VAULTS; 
+		x = vault_x * bank_x * NUM_GRIDS_X; 
+		y = vault_y * bank_y * NUM_GRIDS_Y;
+		double asr = max(x, y) / min(x,y); 
+		int vault_x_r = vault_x; 
+		while (true){
+			vault_x ++; 
+			vault_y = NUM_VAULTS/vault_x; 
+			if (vault_x * vault_y != NUM_VAULTS)
+				continue; 
 			x = vault_x * bank_x * NUM_GRIDS_X; 
 			y = vault_y * bank_y * NUM_GRIDS_Y;
-			double asr = max(x, y) / min(x,y); 
-			int vault_x_r = vault_x; 
-			while (true){
-				vault_x ++; 
-				vault_y = NUM_VAULTS/vault_x; 
-				if (vault_x * vault_y != NUM_VAULTS)
-					continue; 
-				x = vault_x * bank_x * NUM_GRIDS_X; 
-				y = vault_y * bank_y * NUM_GRIDS_Y;
-				double asr_n = max(x, y) / min(x,y);
-				if (asr_n >= asr)
-					break; 
-				vault_x_r = vault_x; 
-				asr = asr_n;  
-			}
-			vault_x = vault_x_r; 
-			vault_y = NUM_VAULTS / vault_x; 
+			double asr_n = max(x, y) / min(x,y);
+			if (asr_n >= asr)
+				break; 
+			vault_x_r = vault_x; 
+			asr = asr_n;  
+		}
+		vault_x = vault_x_r; 
+		vault_y = NUM_VAULTS / vault_x; 
 
-			//std::cout << "vault_x = " << vault_x << "; vault_y = " << vault_y << "\n"; 
-			//std::cout << "bank_x = " << bank_x << "; bank_y = " << bank_y << "\n";
-			//std::cout << "NUM_GRIDS_X = " << NUM_GRIDS_X << "; NUM_GRIDS_Y = " << NUM_GRIDS_Y << std::endl;
-		}
- 		else if (ARCH_SCHEME == 2)
-		{
-			bank_x = 1; 
-			bank_y = 1; 
-			vault_x = square_array(NUM_VAULTS); 
-			vault_y = NUM_VAULTS / vault_x;
-		}
 
 		x = vault_x * bank_x * NUM_GRIDS_X; 
 		y = vault_y * bank_y * NUM_GRIDS_Y; 
@@ -117,29 +96,12 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 
 		std::cout << "(x, y, z) = " << "( " << x << ", " << y << ", " << z << " )" << std::endl; 
 
-/*		for (int l = 0; l < z; l ++)
-		{
-			std::cout << "layer " << l << std::endl; 
-			for (int i = 0; i < x; i ++)
-			{
-				for (int j = 0; j < y; j ++)
-				{
-					std::cout << accu_Pmap[i][j][l] << " "; 
-				}
-				std::cout << std::endl;
-			}
-		}
-*/
 		std::cout << "vault_x = " << vault_x << "; vault_y = " << vault_y << std::endl;
 		std::cout << "bank_x = " << bank_x << "; bank_y = " << bank_y << std::endl;
 
 		///////// calculate Midx and MidxSize for temperature ///////////////
 		calcMidx();
 		
-		///////// calculate Midx and MidxSize for PDN ///////////////
-		// calcPDNMidx();
-		//////// Initialize the transient PDN variables /////////////
-		// IniTransPDN();
 
 		/* define the file name */
 		power_trace_str = resultdir + "power_trace.csv"; 
@@ -174,7 +136,7 @@ ThermalCalculator::ThermalCalculator(bool withLogic_):
 			std::ofstream power_stat_file; 
 			power_file.open(power_trace_str.c_str()); power_file << "S_id,layer,x,y,power\n"; power_file.close();
 			temp_file.open(temp_trace_str.c_str()); temp_file << "S_id,layer,x,y,temperature\n"; temp_file.close();
-			power_stat_file.open(power_stat_str.c_str()); power_stat_file << "S_id,tot,Read,Write,ACT,Ref,Pre,Back,IO\n"; power_stat_file.close();
+			power_stat_file.open(power_stat_str.c_str()); power_stat_file << "S_id,tot,Read,Write,ACT,Ref,Pre,Back\n"; power_stat_file.close();
 		}
 
 		cout << "sample_id = " << sample_id << endl;
@@ -202,22 +164,6 @@ ThermalCalculator::~ThermalCalculator()
         free(Midx[k]);
     }
     free(Midx); 
-    
-
-    /*for (size_t i = 0; i < PDN_x; i++)
-    {
-        for (size_t j = 0; j < PDN_y; j++)
-        {
-            free(V_final[i][j]);
-        }
-        free(V_final[i]); 
-    }
-    free(V_final);*/
-
-    for (int k = 0; k < PDNMidxSize; k ++)
-    {
-        free(PDNMidx[k]);
-    }
 
     free(T_trans); 
     free(Cap);
@@ -248,7 +194,7 @@ void ThermalCalculator::Dump_PTdata()
 	accuP_file.close(); 
 	curP_file.close();
 
-	Pstat_file << sampleEnergy << "\n" << sapRead_E  << "\n" << sapWrite_E << "\n" << sapACT_E << "\n" << sapRef_E << "\n" << sapPre_E << "\n" << sapBack_E << "\n" << sapIO_E << std::endl;
+	Pstat_file << sampleEnergy << "\n" << sapRead_E  << "\n" << sapWrite_E << "\n" << sapACT_E << "\n" << sapRef_E << "\n" << sapPre_E << "\n" << sapBack_E << std::endl;
 	Pstat_file.close();
 }
 
@@ -279,7 +225,7 @@ void ThermalCalculator::Reload_PTdata()
 	curP_file.close();
 
 	Pstat_file >> sampleEnergy; Pstat_file >> sapRead_E; Pstat_file >> sapWrite_E; Pstat_file >> sapACT_E; 
-	Pstat_file >> sapRef_E; Pstat_file >> sapPre_E; Pstat_file >> sapBack_E; Pstat_file >> sapIO_E;
+	Pstat_file >> sapRef_E; Pstat_file >> sapPre_E; Pstat_file >> sapBack_E;
 	Pstat_file.close();
 }
 
@@ -314,10 +260,10 @@ void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, u
 	//cout << "num_refresh = " << num_refresh << endl;
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
-		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
+		//cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
+		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
 		sample_id = sample_id + 1; 
 	}
 	totalEnergy += energy_t_ * Vdd / 1000.0;
@@ -329,15 +275,13 @@ void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, u
     vault_usage_multi[vault_id_] ++; 
     double energy; 
     int ref_layer = 0, ref_row_phy = 0, ref_col_phy = 0; 
-    if (ARCH_SCHEME == 1)
+
+    energy = energy_t_ / (REFRESH_ROWNUM); 
+    for (int i = 0; i < REFRESH_ROWNUM; i ++)
     {
-    	energy = energy_t_ / (REFRESH_ROWNUM); 
-    	for (int i = 0; i < REFRESH_ROWNUM; i ++)
-    	{
-    		mapPhysicalLocation(vault_id_, bank_id_, row_id_+i, col_id_, &ref_layer, &ref_row_phy, &ref_col_phy);
-    		accu_Pmap[ref_row_phy][ref_col_phy][ref_layer] += energy * Vdd / 1000.0;
-    		cur_Pmap[ref_row_phy][ref_col_phy][ref_layer] += energy * Vdd / 1000.0;
-    	}
+    	mapPhysicalLocation(vault_id_, bank_id_, row_id_+i, col_id_, &ref_layer, &ref_row_phy, &ref_col_phy);
+    	accu_Pmap[ref_row_phy][ref_col_phy][ref_layer] += energy * Vdd / 1000.0;
+    	cur_Pmap[ref_row_phy][ref_col_phy][ref_layer] += energy * Vdd / 1000.0;
     }
 
 }
@@ -345,15 +289,9 @@ void ThermalCalculator::addPower_refresh(double energy_t_, unsigned vault_id_, u
 
 void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, bool single_bank, uint64_t cur_cycle, int cmd_type)
 {
-	//cout << "addPower\n";
-	//cout << "cur_cycle = " << cur_cycle << endl;
 
-	//std::cout << "energy = " << energy_t_ << std::endl; 
-	//std::cout << "(vault, bank, row, col) = " << "( " << vault_id_ << ", " << bank_id_ << ", " << row_id_ << ", " << col_id_ << " )" << std::endl;
-	//std::cout << "single_bank is " << single_bank << std::endl;
     if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)  && cur_cycle <= clk_cycle_dist){
 		if (cur_cycle > (sample_id+1) * power_epoch){
-			//cout << "sample_id = " << sample_id << "; cur_cycle = " << cur_cycle << endl;
 			sample_id = sample_id + 1;
 		}
 		return; 
@@ -362,10 +300,9 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 	////// determine whether the sampling period ends //////////////
 	if (cur_cycle > (sample_id+1) * power_epoch)
 	{
-		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
 		save_sampleP(cur_cycle, sample_id); 
 		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
+		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
 		sample_id = sample_id + 1; 
 	}
 
@@ -412,113 +349,44 @@ void ThermalCalculator::addPower(double energy_t_, unsigned vault_id_, unsigned 
 		double energy; 
 		int base_layer = 0, base_row_phy = 0, base_col_phy = 0; 
 		mapPhysicalLocation(vault_id_, bank_id_, row_id_, col_id_, &base_layer, &base_row_phy, &base_col_phy);
-		//std::cout << "(layer, row, col) = " << "( " << base_layer << ", " << base_row_phy << ", " << base_col_phy << " )" << std::endl; 
 		
-        if (ARCH_SCHEME == 1)
-        {
-        	energy = energy_t_ / (NUM_GRIDS_X * NUM_GRIDS_Y); 
-			for (int i = base_row_phy; i < base_row_phy + NUM_GRIDS_X; i ++)
+
+        energy = energy_t_ / (NUM_GRIDS_X * NUM_GRIDS_Y); 
+		for (int i = base_row_phy; i < base_row_phy + NUM_GRIDS_X; i ++)
+		{
+			for (int j = base_col_phy; j < base_col_phy + NUM_GRIDS_Y; j ++)
 			{
-				for (int j = base_col_phy; j < base_col_phy + NUM_GRIDS_Y; j ++)
-				{
-					accu_Pmap[i][j][base_layer] += energy * Vdd / 1000.0; 
-					cur_Pmap[i][j][base_layer] += energy * Vdd / 1000.0; 
-					//std::cout << "(" << i << "," << j << "," << base_layer << ") ADDS " << energy * Vdd / 1000.0 << " NOW IS " << accu_Pmap[i][j][base_layer] << std::endl << std::endl;
-				}
+				accu_Pmap[i][j][base_layer] += energy * Vdd / 1000.0; 
+				cur_Pmap[i][j][base_layer] += energy * Vdd / 1000.0; 
 			}
-        }
-        else if (ARCH_SCHEME == 0)
-        {
-        	energy = energy_t_ / (NUM_GRIDS_X * NUM_GRIDS_Y * NUM_LAYERS); 
-			for (int l = 0; l < NUM_LAYERS; l ++){
-				for (int i = base_row_phy; i < base_row_phy + NUM_GRIDS_X; i ++){
-					for (int j = base_col_phy; j < base_col_phy + NUM_GRIDS_Y; j ++){
-						accu_Pmap[i][j][l] += energy * Vdd / 1000.0; 
-						cur_Pmap[i][j][l] += energy * Vdd / 1000.0; 
-					}
-				}
-			}
-        }	
-        else if (ARCH_SCHEME == 2)
-        {
-        	energy = energy_t_ / NUM_LAYERS; 
-        	for (int l = 0; l < NUM_LAYERS; l ++){
-        		accu_Pmap[base_row_phy][base_col_phy][l] += energy * Vdd / 1000.0;
-        		cur_Pmap[base_row_phy][base_col_phy][l] += energy * Vdd / 1000.0;
-        	}
-        }	
-
-	}
-
-}
-
-void ThermalCalculator::addIOPower(double energy_t_, unsigned vault_id_, unsigned bank_id_, unsigned row_id_, unsigned col_id_, uint64_t cur_cycle)
-{
-	if ((int)(cur_cycle/power_epoch) <= (int)(clk_cycle_dist/power_epoch)  && cur_cycle <= clk_cycle_dist){
-		if (cur_cycle > (sample_id+1) * power_epoch){
-			//cout << "sample_id = " << sample_id << "; cur_cycle = " << cur_cycle << endl;
-			sample_id = sample_id + 1;
 		}
-		return; 
-	}
-	////// determine whether the sampling period ends //////////////
-	if (cur_cycle > (sample_id+1) * power_epoch)
-	{
-		cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
-		save_sampleP(cur_cycle, sample_id); 
-		cur_Pmap = vector<vector<vector<double> > > (x, vector<vector<double> > (y, vector<double> (z, 0)));
-		sampleEnergy = 0; sapRead_E = 0; sapWrite_E = 0; sapRef_E = 0; sapIO_E = 0; sapACT_E = 0; sapPre_E = 0; sapBack_E = 0;
-		sample_id = sample_id + 1; 
+        	
+
 	}
 
-
-	int NGperLperV = bank_x * bank_y * NUM_GRIDS_X * NUM_GRIDS_Y;
-	double energy = energy_t_ / NGperLperV; // spread the power to all the grids on one layer
-	int layer = 0, row_phy = 0, col_phy = 0; 
-	mapPhysicalLocation(vault_id_, bank_id_, row_id_, col_id_, &layer, &row_phy, &col_phy);
-	int vault_id_x = vault_id_ / vault_y; 
-	int vault_id_y = vault_id_ % vault_y; 
-
-	totalEnergy += energy_t_ * Vdd / 1000.0; 
-	IOEnergy += energy_t_ * Vdd / 1000.0;
-	totIO_E += energy_t_ * Vdd / 1000.0;
-	sapIO_E += energy_t_ * Vdd / 1000.0;
-
-	// just need the layer of the visit 
-	for (int i = vault_id_x * bank_x * NUM_GRIDS_X; i < (vault_id_x + 1) * bank_x * NUM_GRIDS_X; i ++){
-		for (int j = vault_id_y * bank_y * NUM_GRIDS_Y; j < (vault_id_y + 1) * bank_y * NUM_GRIDS_Y; j ++){
-			accu_Pmap[i][j][layer] += energy * Vdd / 1000.0;
-			cur_Pmap[i][j][layer] += energy * Vdd / 1000.0;
-		}
-	}
 }
 
 
 void ThermalCalculator::rev_mapPhysicalLocation(int *vault_id_, int *bank_id_, int *row_s, int *row_e, int layer, int row, int col)
 {
-	// currently only support ARCH_SCHEME 1 
-	if (ARCH_SCHEME == 1)
-	{
-		int grid_step = NUM_ROWS / (NUM_GRIDS_X * NUM_GRIDS_Y);
-		int num_bank_per_layer = NUM_BANKS / NUM_LAYERS;  
-		int bx = row / NUM_GRIDS_X; 
-		int by = col / NUM_GRIDS_Y; 
-		int vx = bx / bank_x; 
-		int vy = by / bank_y; 
-		// get the vault id
-		*vault_id_ = vx * vault_y + vy; 
 
-		// get the bank id
-		int bank_same_layer = (bx % bank_x)* bank_y + (by % bank_y); 
-		*bank_id_ = layer * num_bank_per_layer + bank_same_layer; 
+	int grid_step = NUM_ROWS / (NUM_GRIDS_X * NUM_GRIDS_Y);
+	int num_bank_per_layer = NUM_BANKS / NUM_LAYERS;  
+	int bx = row / NUM_GRIDS_X; 
+	int by = col / NUM_GRIDS_Y; 
+	int vx = bx / bank_x; 
+	int vy = by / bank_y; 
+	// get the vault id
+	*vault_id_ = vx * vault_y + vy; 
 
-		// get the row id
-		int grid_id = (row % NUM_GRIDS_X) * NUM_GRIDS_Y + (col % NUM_GRIDS_Y); 
-		*row_s = grid_id * grid_step; 
-		*row_e = (grid_id+1) * grid_step; 
-	}
-	else
-		cout << "Currently Only Support ARCH_SCHEME = 1\n";
+	// get the bank id
+	int bank_same_layer = (bx % bank_x)* bank_y + (by % bank_y); 
+	*bank_id_ = layer * num_bank_per_layer + bank_same_layer; 
+
+	// get the row id
+	int grid_id = (row % NUM_GRIDS_X) * NUM_GRIDS_Y + (col % NUM_GRIDS_Y); 
+	*row_s = grid_id * grid_step; 
+	*row_e = (grid_id+1) * grid_step; 
 }
 
 
@@ -529,49 +397,23 @@ void ThermalCalculator::mapPhysicalLocation(unsigned vault_id_, unsigned bank_id
 	int vault_id_x = vault_id_ / vault_y; 
 	int vault_id_y = vault_id_ % vault_y; 
 
-	if (ARCH_SCHEME == 0)
-	{
-		// layer # is determined by the index of rows and columns 
-		// each bank is divided into NUM_GRIDS_X * NUM_GRIDS_Y * NUM_LAYERS thermal grids 
-		*layer = row_id_ / (NUM_ROWS / NUM_LAYERS); 
-		int grid_id = (row_id_ % (NUM_ROWS / NUM_LAYERS)) / (NUM_ROWS / NUM_LAYERS / NUM_GRIDS_X / NUM_GRIDS_Y); 
-		int grid_id_x = grid_id / NUM_GRIDS_Y; 
-		int grid_id_y = grid_id % NUM_GRIDS_Y; 
+	// layer # is determined by the index of bank
+	// each bank is divided into NUM_GRIDS_X * NUM_GRIDS_Y thermal grids 
+	// all the thermal grids within one bank lie on the same layer
+	int num_bank_per_layer = NUM_BANKS / NUM_LAYERS; 
+	*layer = bank_id_ / num_bank_per_layer; 
 
-		int bank_id_x = bank_id_ / bank_y; 
-		int bank_id_y = bank_id_ % bank_y; 
+	int bank_same_layer = bank_id_ % num_bank_per_layer; 
+	int bank_id_x = bank_same_layer / bank_y; 
+	int bank_id_y = bank_same_layer % bank_y; 
 
-		*row = vault_id_x * (bank_x * NUM_GRIDS_X) + bank_id_x * NUM_GRIDS_X + grid_id_x; 
-        *col = vault_id_y * (bank_y * NUM_GRIDS_Y) + bank_id_y * NUM_GRIDS_Y + grid_id_y;
-	}
-	else if (ARCH_SCHEME == 1)
-	{
-		// layer # is determined by the index of bank
-		// each bank is divided into NUM_GRIDS_X * NUM_GRIDS_Y thermal grids 
-		// all the thermal grids within one bank lie on the same layer
-		int num_bank_per_layer = NUM_BANKS / NUM_LAYERS; 
-		*layer = bank_id_ / num_bank_per_layer; 
+	int grid_step = NUM_ROWS / (NUM_GRIDS_X * NUM_GRIDS_Y); 
+	int grid_id = row_id_ / grid_step; 
+	int grid_id_x = grid_id / NUM_GRIDS_Y; 
+	int grid_id_y = grid_id % NUM_GRIDS_Y; 
 
-		int bank_same_layer = bank_id_ % num_bank_per_layer; 
-		int bank_id_x = bank_same_layer / bank_y; 
-		int bank_id_y = bank_same_layer % bank_y; 
-
-		int grid_step = NUM_ROWS / (NUM_GRIDS_X * NUM_GRIDS_Y); 
-		int grid_id = row_id_ / grid_step; 
-		int grid_id_x = grid_id / NUM_GRIDS_Y; 
-		int grid_id_y = grid_id % NUM_GRIDS_Y; 
-
-        *row = vault_id_x * (bank_x * NUM_GRIDS_X) + bank_id_x * NUM_GRIDS_X + grid_id_x; 
-        *col = vault_id_y * (bank_y * NUM_GRIDS_Y) + bank_id_y * NUM_GRIDS_Y + grid_id_y;
-	}
-	else if (ARCH_SCHEME == 2)
-	{
-		int num_bank_per_layer = NUM_BANKS / NUM_LAYERS; 
-		*layer = bank_id_ / num_bank_per_layer; 
-
-		*row = vault_id_x;
-		*col = vault_id_y;
-	}
+    *row = vault_id_x * (bank_x * NUM_GRIDS_X) + bank_id_x * NUM_GRIDS_X + grid_id_x; 
+    *col = vault_id_y * (bank_y * NUM_GRIDS_Y) + bank_id_y * NUM_GRIDS_Y + grid_id_y;
 
 }
 
@@ -645,7 +487,7 @@ void ThermalCalculator::printTtrans(unsigned S_id)
 
 }
 
-void ThermalCalculator::printSamplePower2(uint64_t cur_cycle, unsigned S_id){
+void ThermalCalculator::printSamplePower(uint64_t cur_cycle, unsigned S_id){
 	uint64_t ElapsedCycle = cur_cycle; 
 	std::ofstream power_file; 
 	power_file.open(power_trace_str.c_str(), std::ios_base::app);
@@ -678,7 +520,7 @@ void ThermalCalculator::printSamplePower2(uint64_t cur_cycle, unsigned S_id){
 	power_stat_file << S_id << "," << sampleEnergy /(double) ElapsedCycle << "," << sapRead_E /(double) ElapsedCycle << "," 
 	                << sapWrite_E /(double) ElapsedCycle << "," << sapACT_E /(double) ElapsedCycle << ","
 	                << sapRef_E /(double) ElapsedCycle << "," << sapPre_E /(double) ElapsedCycle << ","
-	                << sapBack_E /(double) ElapsedCycle << "," << sapIO_E /(double) ElapsedCycle << std::endl;
+	                << sapBack_E /(double) ElapsedCycle << std::endl;
 	power_stat_file.close();
 
 }
@@ -721,8 +563,6 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 {
 	/* accuP = true: calculate for the accumulative power */
 	/* accuP = false: calculate for the transient power */
- 
-	//std::cout << "\ncome in the genTotalP\n";
 
 	double logicE, cellE_ratio, cellE; 
 	uint64_t ElapsedCycle = cur_cycle; 
@@ -744,7 +584,6 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 	power_file.close();
 
 
-	//std::cout << "finish imresize2D\n";
 	double val = 0.0;
 	for (int i = 0; i < x; i ++)
 		for (int j = 0; j < y; j++)
@@ -763,7 +602,6 @@ void ThermalCalculator::genTotalP(bool accuP, uint64_t cur_cycle)
 		logicE = sampleEnergy * 1.83;
 	}
 	cellE = logicE / x / y; 
-	//cellE_ratio = logicE / val;
 
 	for (int l = 0; l < z+logicP_z+1; l ++)
 	{
@@ -850,11 +688,6 @@ void ThermalCalculator::calcT(uint64_t cur_cycle)
     cout << "sum_power = " << sum_power << endl;
 
 
-    /*double grid_size = 200e-6; // randomly choose a value
-    double W, L; 
-    W = grid_size * (double) dimX; 
-    L = grid_size * (double) dimZ; */
-
     T_final = steady_thermal_solver(powerM, ChipX, ChipZ, numP, dimX, dimZ, Midx, MidxSize);
 
     // print the final temperature profile 
@@ -870,10 +703,10 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 	/* The current transient temperature is stored in T_trans */
 	/* Also, the current transient temperature is written to the file */
 
-
 	genTotalP(false, power_epoch); 
-	printSamplePower2(power_epoch, S_id); 
+	printSamplePower(power_epoch, S_id); 
 
+	cout << "\ncur = " << cur_cycle << "; dist = " << clk_cycle_dist << "; sampleEnergy = " << sampleEnergy << "; sapRef_E = " << sapRef_E << "\n"; 
 	cout << "time = " << float(clock() - t)/CLOCKS_PER_SEC << " [s]\n";  
 	cout << "========= solve for Sample " << S_id << "==== Current time is " << power_epoch * (S_id+1) * tCK * 1e-9 << "[s] ================\n";
 
@@ -884,8 +717,6 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 	calc_trans_T();
 
 	printTtrans(S_id);
-	////// calculate the transient PDN //////////////
-	//TransPDNsolver();
 
 	/////////////// Update the Dynamic Management Information ///////////////
 	cout << "num_refresh = " << num_refresh << endl;
@@ -935,10 +766,6 @@ void ThermalCalculator::calc_trans_T()
     				powerM[i][j][l] = cur_Pmap[i][j][l] / (double) ElapsedCycle; 
     }
 
-    /*double grid_size = 200e-6; // randomly choose a value
-    double W, L; 
-    W = grid_size * (double) dimX; 
-    L = grid_size * (double) dimZ; */
 
     int time_iter = TimeIter0; 
     while (time / time_iter >= max_tp)
@@ -975,13 +802,6 @@ void ThermalCalculator::calcMidx()
 	Cap = calculate_Cap_array(ChipX, ChipZ, numP, dimX, dimZ, &CapSize);
 	calculate_time_step();
 	T_trans = initialize_Temperature(ChipX, ChipZ, numP, dimX, dimZ);
-
-    /*cout << "MidxSize = " << MidxSize << endl; 
-
-	int iidx; 
-  	for (iidx = 0; iidx < MidxSize; iidx ++)
-  		cout << Midx[iidx][0] << "\t" << Midx[iidx][1] << "\t" << Midx[iidx][2] << endl;
-*/
 }
 
 void ThermalCalculator::calculate_time_step()
@@ -1093,14 +913,7 @@ void ThermalCalculator::printRT(uint64_t cur_cycle)
 	std::ofstream RT_file;
 	std::ofstream cur_file; 
 
-	//file_oss << "./power_trace/RT_sample_" << S_id << ".csv";
-	//std::string file_name_str = file_oss.str();
-	//file_oss.str("");
-	//char* file_name = new char[file_name_str.size() + 1]; 
-	//std::copy(file_name_str.begin(), file_name_str.end(), file_name); 
-	//file_name[file_name_str.size()] = '\0';
 	RT_file.open(dump_RT_str.c_str()); 
-	//RT_file << NUM_VAULTS << " " << NUM_BANKS << " " << NUM_ROWS << endl; 
 
 	for (int iv = 0; iv < NUM_VAULTS; iv ++){
 		for (int ib = 0; ib < NUM_BANKS; ib ++){

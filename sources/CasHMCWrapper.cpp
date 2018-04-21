@@ -986,12 +986,6 @@ void CasHMCWrapper::CalcFinalT()
 	ThermalCal.calcT(currentClockCycle);
 }
 
-void CasHMCWrapper::CalcFinalV()
-{
-	//cout << "come to CalcFinalV()" << endl;
-	ThermalCal.calc_steadyPDN(currentClockCycle);
-}
-
 
 } //namespace CasHMC
 

@@ -26,7 +26,6 @@ using namespace CasHMC;
 
 long numSimCycles = 100000;
 long PowerEpoch = 1000;
-int ARCH_SCHEME = 1;
 int NUM_GRIDS_X = 1; 
 int NUM_GRIDS_Y = 1; 
 int MAT_X = 512; // Byte 
@@ -62,11 +61,20 @@ void got_signal(int)
 
 void help()
 {
-	cout<<endl<<"-c (--cycle)   : The number of CPU cycles to be simulated"<<endl;
+	cout<<endl<<"-c (--cycle)   : The number of CPU cycles to be simulated [Default 100000]"<<endl;
 	cout<<"-t (--trace)   : Trace type ('random' or 'file')"<<endl;
 	cout<<"-u (--util)    : Requests frequency (0 = no requests, 1 = as fast as possible) [Default 0.1]"<<endl;
 	cout<<"-r (--rwratio) : (%) The percentage of reads in request stream [Default 80]"<<endl;
 	cout<<"-f (--file)    : Trace file name"<<endl;
+	cout<<"-e (--power_epoch) : The number of HMC cycles for one power epoch [Default 1000]"<<endl;
+	cout<<"-x (--mat_x) : The number of DRAM cells of a mat in x-direction [Default 512]"<<endl;
+	cout<<"-y (--mat_y) : The number of DRAM cells of a mat in y-direction [Default 512]"<<endl;
+	cout<<"-q (--logicP_file) : CPU power file name"<<endl;
+	cout<<"-d (--result_directory) : Directory name for the results"<<endl;
+	cout<<"-s (--DRAM_refresh_file) : DRAM cell retention time file"<<endl;
+	cout<<"-b (--CPU_CLK_PERIOD) : (ns) The CPU operation period [Default 0.5]"<<endl;
+	cout<<"-k (--cont_bool) : Indicating whether using the intermediate data [Default 0 -- not using]"<<endl;
+	cout<<"-g (--start_line_in_file) : the start line of the memory trace file [Default 0]"<<endl;
 	cout<<"-h (--help)    : Simulation option help"<<endl<<endl;
 }
 
@@ -179,11 +187,6 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &sa, NULL); 
 
 
-
-    //std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
-    //cout << "NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
-    //cout << "NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
-
 	while(1) {
 		static struct option long_options[] = {
 			{"pwd", required_argument, 0, 'p'},
@@ -191,7 +194,6 @@ int main(int argc, char **argv)
 			{"power_epoch", required_argument, 0, 'e'},
 			{"trace",  required_argument, 0, 't'},
 			{"util",  required_argument, 0, 'u'},
-			{"3D_architecture", required_argument, 0, 'a'},
 			{"mat_x", required_argument, 0, 'x'},
 			{"max_y", required_argument, 0, 'y'},
 			{"rwratio",  required_argument, 0, 'r'},
@@ -207,7 +209,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:s:f:b:k:g:h", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:x:y:r:q:d:s:f:b:k:g:h", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -254,9 +256,6 @@ int main(int argc, char **argv)
 					cout<<endl<<"  This value must be in the between '0' and '1'"<<endl<<endl;
 					exit(0);
 				}
-				break;
-			case 'a':
-			    ARCH_SCHEME = atoi(optarg);
 				break;
 			case 'x':
 			    MAT_X = atoi(optarg);
@@ -327,10 +326,7 @@ int main(int argc, char **argv)
 
 	std::cout << "CPU_CLK_PERIOD = " << CPU_CLK_PERIOD << std::endl;
 	std::cout << "start_line_in_file = " << start_line_in_file << std::endl;
-	//std::cout << "Now, ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
-	//cout << "Now: NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
-    //cout << "Now: NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
-    //cout << "tTSV = " << tTSV << endl;
+
 	
 	srand((unsigned)time(NULL));
 	casHMCWrapper = new CasHMCWrapper(calc_withLogic);
@@ -421,7 +417,6 @@ int main(int argc, char **argv)
 	}
 
     casHMCWrapper->CalcFinalT();
-    //casHMCWrapper->CalcFinalV();
 
 	transactionBuffers.clear();
 	delete casHMCWrapper;

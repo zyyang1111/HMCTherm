@@ -94,10 +94,10 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			delete recvCMD;
 			break;
 		case READ:
-            energy_t = ((double)IDD4R - (double)IDD3N) * (double)BL/2.0;
+            energy_t = ((double)IDD4R - (double)IDD3N) * (double)BL/2.0 + IOREAD;
             thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 2); 
-            energy_t = IOREAD * 32 * 8; // read IO power, spread it across the layer
-            thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
+            //energy_t = IOREAD * 32 * 8; // read IO power, spread it across the layer
+            //thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             //thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
             
 
@@ -114,10 +114,10 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			readReturnCountdown.push_back(RL);
 			break;
 		case READ_P:
-            energy_t = ((double)IDD4R - (double)IDD3N) * (double)BL/2.0;
+            energy_t = ((double)IDD4R - (double)IDD3N) * (double)BL/2.0 + IOREAD;
             thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 2); 
-            energy_t = IOREAD * 32 * 8; // read IO power  
-            thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
+            //energy_t = IOREAD * 32 * 8; // read IO power  
+            //thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             //thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
 
 			bankStates[recvCMD->bank]->nextActivate = max(currentClockCycle + READ_AUTOPRE_DELAY, bankStates[recvCMD->bank]->nextActivate);
@@ -138,10 +138,10 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			readReturnCountdown.push_back(RL);
 			break;
 		case WRITE:
-            energy_t = ((double)IDD4W - (double)IDD3N) * (double)BL/2.0;
+            energy_t = ((double)IDD4W - (double)IDD3N) * (double)BL/2.0 + IOWRITE;
             thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 3); 
-            energy_t = IOWRITE * 32 * 8; // write IO power  
-            thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
+            //energy_t = IOWRITE * 32 * 8; // write IO power  
+            //thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             //thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
 
 			bankStates[recvCMD->bank]->nextPrecharge = max(currentClockCycle + WRITE_TO_PRE_DELAY, bankStates[recvCMD->bank]->nextPrecharge);
@@ -155,10 +155,10 @@ void DRAM::receiveCMD(DRAMCommand *recvCMD)
 			delete recvCMD;
 			break;
 		case WRITE_P:
-            energy_t = ((double)IDD4W - (double)IDD3N) * (double)BL/2.0;
+            energy_t = ((double)IDD4W - (double)IDD3N) * (double)BL/2.0 + IOWRITE;
             thermalCalPtr->addPower(energy_t, vault_id, bank_id, row_id, col_id, true, currentClockCycle, 3); 
-            energy_t = IOWRITE * 32 * 8; // write IO power  
-            thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
+            //energy_t = IOWRITE * 32 * 8; // write IO power  
+            //thermalCalPtr->addIOPower(energy_t, vault_id, bank_id, row_id, col_id, currentClockCycle);
             //thermalCalPtr->mapPhysicalLocation(vault_id, bank_id, row_id, col_id, &layer, &x, &y); // adding the delay of layer
 
 			bankStates[recvCMD->bank]->nextActivate = max(currentClockCycle + WRITE_AUTOPRE_DELAY, bankStates[recvCMD->bank]->nextActivate);

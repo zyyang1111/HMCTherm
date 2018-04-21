@@ -28,7 +28,6 @@ extern int NUM_GRIDS_X;
 extern int NUM_GRIDS_Y;  
 extern int MAT_X; // number of bytes in x dimension of a mat 
 extern int MAT_Y; // number of bytes in y dimension of a mat
-extern int ARCH_SCHEME; // 1: the same bank are gathered together; 0: the same bank are scattered across the layers
 
 
 enum MAPPING_SCHEME
@@ -100,8 +99,8 @@ static unsigned IDD7=460;
 static double Vdd = 1.05; // supply voltage 1 V -- I currently set it as a global value
 
 // used for I/O power calculation 
-static double IOREAD = 1 / Vdd; 
-static double IOWRITE = 1 / Vdd; 
+static double IOREAD = 0.001 / Vdd; 
+static double IOWRITE = 0.001 / Vdd; 
 
 #define READ_TO_PRE_DELAY (AL+BL/2+max(tRTP,tCCD)-tCCD)
 #define WRITE_TO_PRE_DELAY (WL+BL/2+tWR)
