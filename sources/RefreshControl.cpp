@@ -8,6 +8,7 @@ using namespace CasHMC;
 extern string RTFileName;
 extern string RT_cntdown_str; 
 extern int cont_bool; 
+extern int isRFcontrol; 
 
 
 RFControl::RFControl():
@@ -21,19 +22,24 @@ RFControl::RFControl():
 	RetTCountDown = vector<vector<vector<int> > > (NUM_VAULTS, vector<vector<int> > (NUM_BANKS, vector<int> (NUM_ROWS, 0)));
 
 
-	IniRet(); 
-	for (int iv = 0; iv < NUM_VAULTS; iv ++)
-		for (int ib = 0; ib < NUM_BANKS; ib ++)
-			for (int ir = 0; ir < NUM_ROWS; ir ++)
-				RetT[iv][ib][ir] = RetT_ref[iv][ib][ir];
+	if (isRFcontrol){
+		IniRet(); 
+		for (int iv = 0; iv < NUM_VAULTS; iv ++)
+			for (int ib = 0; ib < NUM_BANKS; ib ++)
+				for (int ir = 0; ir < NUM_ROWS; ir ++)
+					RetT[iv][ib][ir] = RetT_ref[iv][ib][ir];
 
-	IniRetCountD(); // calculate this first to get RetTCountDown_r 
-					// we will over write RetTCountDown if cont_bool == 1
+		IniRetCountD(); // calculate this first to get RetTCountDown_r 
+						// we will over write RetTCountDown if cont_bool == 1
 
-	if (cont_bool){
-		LoadRetCountD();
+		if (cont_bool)
+			LoadRetCountD();
 	}
 	
+}
+
+RFControl::~RFControl(){
+
 }
 
 void RFControl::LoadRetCountD()
@@ -74,11 +80,6 @@ void RFControl::parse_line_2(string line, int vaultID)
 	RetTCountDown[vaultID][ib][ir] = atof(line.substr(0, found).c_str()); 
 }
 
-
-void RFControl::IniDim(int x_, int y_, int z_)
-{
-	x = x_; y = y_; z = z_;
-}
 
 void RFControl::IniRet()
 {

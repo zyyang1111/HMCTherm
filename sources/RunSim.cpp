@@ -48,6 +48,8 @@ int num_refresh_save = 0;
 double CPU_CLK_PERIOD = 0.5; 
 // define the start processing line in the trace file 
 uint64_t start_line_in_file = 0; 
+// define whether using RFcontrol 
+int isRFcontrol = 0; 
 
 
 
@@ -75,6 +77,7 @@ void help()
 	cout<<"-s (--DRAM_refresh_file) : DRAM cell retention time file"<<endl;
 	cout<<"-b (--CPU_CLK_PERIOD) : (ns) The CPU operation period [Default 0.5]"<<endl;
 	cout<<"-k (--cont_bool) : Indicating whether using the intermediate data [Default 0 -- not using]"<<endl;
+	cout<<"-j (--isRFcontrol) : Indicating whether using the RFControl [Default 0 -- not using]"<<endl;
 	cout<<"-g (--start_line_in_file) : the start line of the memory trace file [Default 0]"<<endl;
 	cout<<"-h (--help)    : Simulation option help"<<endl<<endl;
 }
@@ -205,12 +208,13 @@ int main(int argc, char **argv)
 			{"CPU_CLK_PERIOD", required_argument, 0, 'b'},
 			{"continue", required_argument, 0, 'k'},
 			{"start_line_num", required_argument, 0, 'g'},
+			{"isRFcontrol", required_argument, 0, 'j'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:x:y:r:q:d:s:f:b:k:g:h", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:x:y:r:q:d:s:f:b:k:g:j:h", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -307,6 +311,9 @@ int main(int argc, char **argv)
 				break;
 			case 'k':
 				cont_bool = atoi(optarg);
+				break;
+			case 'j':
+				isRFcontrol = atoi(optarg);
 				break;
 			case 'h':
 			case '?':

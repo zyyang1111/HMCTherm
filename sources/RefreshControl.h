@@ -18,7 +18,6 @@ namespace CasHMC
 		double Tref; // reference temperature in Celsius
 		int minRefT; // minimum Retention Time in 2's power
 		int maxRefT; // maximum Retention Time in 2's power
-		int x, y, z; // dimension of the thermal grids 
 	public:
 		vector<vector<vector<double> > > RetT_ref; // [vault, bank, row]
 		vector<vector<vector<double> > > RetT; // [vault, bank, row]
@@ -27,7 +26,7 @@ namespace CasHMC
 
 
 		RFControl();
-		void IniDim(int x_, int y_, int z_);
+		~RFControl();
 		void UpdateRetT(int vault, int bank, int row_s, int row_e, int T);
 		void IniRet();
 		void IniRetCountD(); 

@@ -28,6 +28,7 @@ extern long PowerEpoch;
 // cont_bool = 1 indicates starting from clk_cycle_dist --> all the previous data will be loaded
 extern uint64_t clk_cycle_dist; 
 extern int cont_bool; 
+extern int isRFcontrol;
 extern int num_refresh_save; 
 extern double CPU_CLK_PERIOD;
 
@@ -720,7 +721,8 @@ void ThermalCalculator::save_sampleP(uint64_t cur_cycle, unsigned S_id)
 
 	/////////////// Update the Dynamic Management Information ///////////////
 	cout << "num_refresh = " << num_refresh << endl;
-	UpdateRefreshCont(); 
+	if (isRFcontrol)
+		UpdateRefreshCont(); 
 
 
 }
@@ -915,17 +917,19 @@ void ThermalCalculator::printRT(uint64_t cur_cycle)
 
 	RT_file.open(dump_RT_str.c_str()); 
 
-	for (int iv = 0; iv < NUM_VAULTS; iv ++){
-		for (int ib = 0; ib < NUM_BANKS; ib ++){
-			for (int ir = 0; ir < NUM_ROWS; ir ++){
-				RT_file << RefreshCont.RetTCountDown[iv][ib][ir]; 
-				if (ir < NUM_ROWS - 1)
+	if (isRFcontrol){
+		for (int iv = 0; iv < NUM_VAULTS; iv ++){
+			for (int ib = 0; ib < NUM_BANKS; ib ++){
+				for (int ir = 0; ir < NUM_ROWS; ir ++){
+					RT_file << RefreshCont.RetTCountDown[iv][ib][ir]; 
+					if (ir < NUM_ROWS - 1)
+						RT_file << " ";
+				}	
+				if (ib < NUM_BANKS - 1)
 					RT_file << " ";
 			}
-			if (ib < NUM_BANKS - 1)
-				RT_file << " ";
+			RT_file << ";\n";
 		}
-		RT_file << ";\n";
 	}
 	RT_file.close();
 
