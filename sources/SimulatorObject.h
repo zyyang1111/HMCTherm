@@ -22,6 +22,8 @@
 #include <iomanip>		//setw()
 #include <sstream>		//stringstream
 
+extern uint64_t clk_cycle_dist; 
+
 using namespace std;
 
 namespace CasHMC
@@ -31,7 +33,8 @@ class SimulatorObject
 {
 public:
 	SimulatorObject(ofstream &debugOut_, ofstream &stateOut_):debugOut(debugOut_), stateOut(stateOut_) {
-		currentClockCycle = 0;
+		// currentClockCycle = 0; // for the original case
+		currentClockCycle = clk_cycle_dist; 
 	}
 	virtual void Update()=0;
 	void Step() {

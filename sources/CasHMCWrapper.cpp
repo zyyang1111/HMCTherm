@@ -19,6 +19,7 @@ extern double memUtil;					//Frequency of requests - 0.0 = no requests, 1.0 = as
 extern double rwRatio;					//(%) The percentage of reads in request stream
 extern string traceFileName;			//Trace file name
 extern string resultdir;
+extern double CPU_CLK_PERIOD;
 
 namespace CasHMC
 {
@@ -77,6 +78,7 @@ ThermalCal(ThermalCalculator(withLogic_))
 	// Log files generation
 	//
 	int status = 1;
+	//cout << "Check this: " << resultdir << endl;
 	string result_file_str = resultdir + "result"; 
 	status = mkdir(result_file_str.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IWOTH | S_IXOTH);
 	
@@ -132,6 +134,7 @@ ThermalCal(ThermalCalculator(withLogic_))
 		temp_vn << ver_num;
 		logName += temp_vn.str();
 		logName += "_setting.log";
+		
 		
 		if(access(logName.c_str(), 0) == -1)	break;
 		else {
@@ -204,6 +207,7 @@ CasHMCWrapper::~CasHMCWrapper()
 	PrintEpochStatistic();
 	PrintFinalStatistic();
 	printAveragePower(); // yzy: printout power maps to .csv
+	//ThermalCal.printRT();
 	debugOut.flush();		debugOut.close();
 	stateOut.flush();		stateOut.close();
 	plotDataOut.flush();	plotDataOut.close();
@@ -910,7 +914,8 @@ void CasHMCWrapper::PrintFinalStatistic()
 	
 	resultOut<<"  ============= CasHMC statistic result ============="<<endl<<endl;
 	resultOut<<"  Elapsed epoch : "<<currentClockCycle/LOG_EPOCH<<endl;
-	resultOut<<"  Elapsed clock : "<<currentClockCycle<<endl<<endl;
+	resultOut<<"  Elapsed clock : "<<currentClockCycle<<endl;
+	resultOut<<"  CPU_CLK_PERIOD : "<<CPU_CLK_PERIOD<<endl<<endl;
 	
 	resultOut<<"        HMC bandwidth : "<<ALI(7)<<hmcBandwidth<<" GB/s  (Considered only data size)"<<endl;
 	resultOut<<"       Link bandwidth : "<<ALI(7)<<linkBandwidthSum<<" GB/s  (Included flow packet)"<<endl;
@@ -977,14 +982,8 @@ void CasHMCWrapper::printAveragePower()
 
 void CasHMCWrapper::CalcFinalT()
 {
-	cout << "come to CalcFinalT()" << endl;
+	//cout << "come to CalcFinalT()" << endl;
 	ThermalCal.calcT(currentClockCycle);
-}
-
-void CasHMCWrapper::CalcFinalV()
-{
-	cout << "come to CalcFinalV()" << endl;
-	ThermalCal.calc_steadyPDN(currentClockCycle);
 }
 
 

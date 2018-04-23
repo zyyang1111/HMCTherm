@@ -11,6 +11,8 @@
 
 #include "LinkMaster.h"
 
+extern double CPU_CLK_PERIOD;
+
 namespace CasHMC
 {
 

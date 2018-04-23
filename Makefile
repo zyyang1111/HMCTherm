@@ -16,7 +16,7 @@ BLASLIB = $(SuperLUroot)/lib/libblas$(PLAT).a
 LIBS		= $(SUPERLULIB) $(BLASLIB)
 # HEADER = $(SuperLUroot)/SRC
 
-CXXFLAGS=-O3 -g -DDEBUG_LOG
+CXXFLAGS=-O3 -std=c++11 -g -DDEBUG_LOG
 EXE_NAME=HMCTherm
 SRCDIR=sources
 
@@ -29,7 +29,7 @@ REBUILDABLES=$(OBJ) $(EXE_NAME)
 all: ${EXE_NAME}
 
 #   $@ target name, $^ target deps, $< matched pattern
-$(EXE_NAME): $(OBJ) $(SRCDIR)/thermal_solver.o $(SRCDIR)/PDN_solver.o 
+$(EXE_NAME): $(OBJ) $(SRCDIR)/thermal_solver.o
 	$(CXX) $(LINK_FLAGS) -o $@ $^ $(LIBS) -lpthread -lm
 	@echo "Built $@ successfully" 
 
@@ -45,9 +45,6 @@ $(EXE_NAME): $(OBJ) $(SRCDIR)/thermal_solver.o $(SRCDIR)/PDN_solver.o
 	g++ $(CXXFLAGS) -o $@ -c $<
 
 $(SRCDIR)/thermal_solver.o: $(SRCDIR)/thermal_solver.c
-	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -o $@ -c $< 
-
-$(SRCDIR)/PDN_solver.o: $(SRCDIR)/PDN_solver.c
 	gcc -D__PTHREAD -g -D_LONGINT -DAdd_ -I/$(SuperLUroot)/SRC -o $@ -c $< 
 
 $(SRCDIR)/sp_ienv.o: $(SRCDIR)/sp_ienv.c

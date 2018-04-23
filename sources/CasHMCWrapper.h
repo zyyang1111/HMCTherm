@@ -55,7 +55,6 @@ public:
 	// yzy : about temperature and power 
 	void printAveragePower();
 	void CalcFinalT();
-	void CalcFinalV();
 	
 	//
 	//Fields

@@ -35,7 +35,7 @@ public:
 	//
 	//Functions
 	//
-	VaultController(ofstream &debugOut_, ofstream &stateOut_, unsigned id);
+	VaultController(ofstream &debugOut_, ofstream &stateOut_, unsigned id, ThermalCalculator *tcPtr);
 	virtual ~VaultController();
 	void CallbackReceiveDown(Packet *packet, bool chkReceive);
 	void CallbackReceiveUp(Packet *packet, bool chkReceive);
@@ -70,7 +70,10 @@ public:
 	DRAMCommand *dataBus;
 	unsigned dataCyclesLeft;
 	vector<DRAMCommand *> writeDataToSend;
-	vector<unsigned> writeDataCountdown;	
+	vector<unsigned> writeDataCountdown;
+
+	// for calculating power
+	ThermalCalculator *thermalCalPtr;	
 };
 
 }

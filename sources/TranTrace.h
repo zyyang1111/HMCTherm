@@ -42,6 +42,7 @@ public:
 		}
 		else {
 			statis->UpdateStatis(tranFullLat, linkFullLat, vaultFullLat);
+			//cout << "(in TranTrace) tranFullLat = " << tranFullLat << endl;
 		}
 	}
 	

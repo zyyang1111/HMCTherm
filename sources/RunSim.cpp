@@ -13,6 +13,10 @@
 #include <stdlib.h>		//exit(0)
 #include <fstream>		//ofstream
 #include <vector>		//vector
+#include <signal.h>    // yzy: used for handle Ctrl+C exception 
+#include <unistd.h>    // yzy: used for handle Ctrl+C exception 
+#include <cstring>     // yzy: used for handle Ctrl+C exception 
+#include <atomic>      // yzy: used for handle Ctrl+C exception 
 
 #include "CasHMCWrapper.h"
 #include "Transaction.h"
@@ -22,7 +26,6 @@ using namespace CasHMC;
 
 long numSimCycles = 100000;
 long PowerEpoch = 1000;
-int ARCH_SCHEME = 1;
 int NUM_GRIDS_X = 1; 
 int NUM_GRIDS_Y = 1; 
 int MAT_X = 512; // Byte 
@@ -32,18 +35,43 @@ double memUtil = 0.1;
 double rwRatio = 80;
 string traceType = "";
 string traceFileName = "";
-string logicPFileName = "";
+string RTFileName = "";
 string resultdir = "";
 vector<Transaction *> transactionBuffers;
 CasHMCWrapper *casHMCWrapper;
+int cont_bool = 0; // 1 --> read continue data
+uint64_t clk_cycle_dist = 0; 
+int num_refresh_save = 0;
+// define CPU_CLK_PERIOD here
+double CPU_CLK_PERIOD = 0.5; 
+// define the start processing line in the trace file 
+uint64_t start_line_in_file = 0; 
+
+
+
+// yzy : 2/7/2018
+// handle ctrl+C exeption
+atomic<bool> quit(false);  // signal flag
+
+void got_signal(int)
+{
+	quit.store(true); 
+}
 
 void help()
 {
-	cout<<endl<<"-c (--cycle)   : The number of CPU cycles to be simulated"<<endl;
+	cout<<endl<<"-c (--cycle)   : The number of CPU cycles to be simulated [Default 100000]"<<endl;
 	cout<<"-t (--trace)   : Trace type ('random' or 'file')"<<endl;
 	cout<<"-u (--util)    : Requests frequency (0 = no requests, 1 = as fast as possible) [Default 0.1]"<<endl;
 	cout<<"-r (--rwratio) : (%) The percentage of reads in request stream [Default 80]"<<endl;
 	cout<<"-f (--file)    : Trace file name"<<endl;
+	cout<<"-e (--power_epoch) : The number of HMC cycles for one power epoch [Default 1000]"<<endl;
+	cout<<"-x (--mat_x) : The number of DRAM cells of a mat in x-direction [Default 512]"<<endl;
+	cout<<"-y (--mat_y) : The number of DRAM cells of a mat in y-direction [Default 512]"<<endl;
+	cout<<"-d (--result_directory) : Directory name for the results"<<endl;
+	cout<<"-b (--CPU_CLK_PERIOD) : (ns) The CPU operation period [Default 0.5]"<<endl;
+	cout<<"-k (--cont_bool) : Indicating whether using the intermediate data [Default 0 -- not using]"<<endl;
+	cout<<"-g (--start_line_in_file) : the start line of the memory trace file [Default 0]"<<endl;
 	cout<<"-h (--help)    : Simulation option help"<<endl<<endl;
 }
 
@@ -147,9 +175,14 @@ int main(int argc, char **argv)
 	bool pendingTran = false;
 	bool calc_withLogic = true;
 
-    //std::cout << "ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
-    //cout << "NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
-    //cout << "NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
+	// yzy : 2/7/2018
+	// handle ctrl+C exeption
+	struct sigaction sa; 
+	memset( &sa, 0, sizeof(sa) );
+	sa.sa_handler = got_signal; 
+	sigfillset(&sa.sa_mask); 
+	sigaction(SIGINT, &sa, NULL); 
+
 
 	while(1) {
 		static struct option long_options[] = {
@@ -158,19 +191,20 @@ int main(int argc, char **argv)
 			{"power_epoch", required_argument, 0, 'e'},
 			{"trace",  required_argument, 0, 't'},
 			{"util",  required_argument, 0, 'u'},
-			{"3D_architecture", required_argument, 0, 'a'},
 			{"mat_x", required_argument, 0, 'x'},
 			{"max_y", required_argument, 0, 'y'},
 			{"rwratio",  required_argument, 0, 'r'},
-			{"logicP_file", required_argument, 0, 'q'},
 			{"result_directory", required_argument, 0, 'd'},
 			{"file",  required_argument, 0, 'f'},
+			{"CPU_CLK_PERIOD", required_argument, 0, 'b'},
+			{"continue", required_argument, 0, 'k'},
+			{"start_line_num", required_argument, 0, 'g'},
 			{"help", no_argument, 0, 'h'},
 			//{"3D_architecture", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 		int option_index=0;
-		opt = getopt_long (argc, argv, "p:c:e:t:u:a:x:y:r:q:d:f:h:k", long_options, &option_index);
+		opt = getopt_long (argc, argv, "p:c:e:t:u:x:y:r:d:f:b:k:g:h", long_options, &option_index);
 		if(opt == -1) {
 			break;
 		}
@@ -193,8 +227,14 @@ int main(int argc, char **argv)
 			case 'c':
 				numSimCycles = atol(optarg);
 				break;
+			case 'g':
+				start_line_in_file = atol(optarg);
+				break;
 			case 'e':
 				PowerEpoch = atol(optarg);
+				break;
+			case 'b':
+				CPU_CLK_PERIOD = atof(optarg); 
 				break;
 			case 't':
 				traceType = string(optarg);
@@ -212,9 +252,6 @@ int main(int argc, char **argv)
 					exit(0);
 				}
 				break;
-			case 'a':
-			    ARCH_SCHEME = atoi(optarg);
-				break;
 			case 'x':
 			    MAT_X = atoi(optarg);
 				break;
@@ -229,19 +266,11 @@ int main(int argc, char **argv)
 					exit(0);
 				}
 				break;
-			case 'q':
-				logicPFileName = string(optarg);
-				if(access(logicPFileName.c_str(), 0) == -1){
-					cout<<endl<<" == -p (--logicP-file) ERROR ==";
-					cout<<endl<<"  There is no logicP file ["<<logicPFileName<<"]"<<endl<<endl;
-					exit(0);
-				}
-				break;
 			case 'd':
 				resultdir = string(optarg);
 				if(access(resultdir.c_str(), 0) == -1){
 					cout<<endl<<" == -d (--result-directory) ERROR ==";
-					cout<<endl<<"  The result directory is not specified ["<<logicPFileName<<"]"<<endl<<endl;
+					cout<<endl<<"  The result directory is not specified ["<<resultdir<<"]"<<endl<<endl;
 					resultdir = "./"; 
 					//exit(0);
 				}
@@ -254,6 +283,9 @@ int main(int argc, char **argv)
 					exit(0);
 				}
 				break;
+			case 'k':
+				cont_bool = atoi(optarg);
+				break;
 			case 'h':
 			case '?':
 				help();
@@ -262,10 +294,17 @@ int main(int argc, char **argv)
 		}
 	}
 
-	//std::cout << "Now, ARCH_SCHEME = " << ARCH_SCHEME << std::endl;
-	//cout << "Now: NUM_GRIDS_X = " << NUM_GRIDS_X << endl;
-    //cout << "Now: NUM_GRIDS_Y = " << NUM_GRIDS_Y << endl;
-    //cout << "tTSV = " << tTSV << endl;
+	if (cont_bool){
+		string curclk_str = resultdir + "currentClockCycle_file.txt";
+		ifstream filein;
+		filein.open(curclk_str.c_str());
+		filein >> clk_cycle_dist; 
+		filein >> num_refresh_save;
+	}
+
+	std::cout << "CPU_CLK_PERIOD = " << CPU_CLK_PERIOD << std::endl;
+	std::cout << "start_line_in_file = " << start_line_in_file << std::endl;
+
 	
 	srand((unsigned)time(NULL));
 	casHMCWrapper = new CasHMCWrapper(calc_withLogic);
@@ -288,6 +327,18 @@ int main(int argc, char **argv)
 			ERROR(" == Error - Could not open trace file ["<<traceFileName<<"]");
 			exit(0);
 		}
+		// yzy: add this to skip certain lines in the tracefile 
+		uint64_t cpuCycle_t = 0;
+		for (cpuCycle_t=0; cpuCycle_t<start_line_in_file; cpuCycle_t++){
+			if (!traceFile.eof()){
+				getline(traceFile, line); 
+			}
+		}
+		if (cpuCycle_t < start_line_in_file-1){
+			traceFile.close(); 
+			traceFile.open(traceFileName.c_str());
+		}
+
 		for(uint64_t cpuCycle=0; cpuCycle<numSimCycles; cpuCycle++) {
 			if(!pendingTran) { // if there is no pending transaction... 
 				if(!traceFile.eof()) {
@@ -330,15 +381,25 @@ int main(int argc, char **argv)
 			}
 			//cout << "cpuCycle = " << cpuCycle << "; total num Sim Cycles = " << numSimCycles << "   "; 
 			casHMCWrapper->Update();
+
+			if (quit.load())
+			{
+				//casHMCWrapper->CalcFinalT();
+				//transactionBuffers.clear();
+				//delete casHMCWrapper;
+				//casHMCWrapper = NULL;
+				cout << "\n\ncpuCycle = " << cpuCycle << endl;
+				break;
+			}
 		}
 	}
 
     casHMCWrapper->CalcFinalT();
-    //casHMCWrapper->CalcFinalV();
 
 	transactionBuffers.clear();
 	delete casHMCWrapper;
 	casHMCWrapper = NULL;
+
 
 	return 0;
 }

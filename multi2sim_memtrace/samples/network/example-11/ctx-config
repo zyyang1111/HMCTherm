@@ -1,3 +1,0 @@
-[ Context 0 ]
-Exe = radix.i386 
-Args = -p40 -r4096 -n262144 -m524288

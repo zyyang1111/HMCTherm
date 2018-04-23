@@ -53,7 +53,7 @@ static bool BANDWIDTH_PLOT = true;	//Bandwidth graph files generation
 //
 //Memory transaction setting
 //
-static double CPU_CLK_PERIOD = 0.5;	//(ns) CPU clock period in nanoseconds
+//static double CPU_CLK_PERIOD = 0.5;	//(ns) CPU clock period in nanoseconds
 static int TRANSACTION_SIZE = 16; 	//(byte) Data size of DRAM request (the internal 32-byte granularity of the DRAM data bus within each vault in the HMC)
 static int MAX_REQ_BUF = 4;			//(transaction) Request buffer size in HMC controller
 

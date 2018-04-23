@@ -11,10 +11,12 @@
 
 #include "VaultController.h"
 
+extern double CPU_CLK_PERIOD;
+
 namespace CasHMC
 {
 	
-VaultController::VaultController(ofstream &debugOut_, ofstream &stateOut_, unsigned id):
+VaultController::VaultController(ofstream &debugOut_, ofstream &stateOut_, unsigned id, ThermalCalculator *tcPtr):
 	DualVectorObject<Packet, Packet>(debugOut_, stateOut_, MAX_VLT_BUF, MAX_VLT_BUF),
 	vaultContID(id)
 {	
@@ -35,6 +37,9 @@ VaultController::VaultController(ofstream &debugOut_, ofstream &stateOut_, unsig
 	
 	//Make class objects
 	commandQueue = new CommandQueue(debugOut, stateOut, this, vaultContID);
+
+	// pass the thermal calculator pointer to this level
+	thermalCalPtr = tcPtr;
 }
 
 VaultController::~VaultController()
@@ -486,6 +491,16 @@ void VaultController::AddressMapping(uint64_t physicalAddress, unsigned &bankAdd
 	bankAdd = physicalAddress & (NUM_BANKS-1);
 	physicalAddress >>= _log2(NUM_BANKS);
 	
+
+	//Extract row address
+	rowAdd = physicalAddress & (NUM_ROWS-1);
+	physicalAddress >>= _log2(NUM_ROWS);
+
+	//Extract column address
+	colAdd = physicalAddress & ((NUM_COLS-1)>>maxBlockBit);
+	colAdd <<= maxBlockBit;
+
+	/*
 	//Extract column address
 	colAdd = physicalAddress & ((NUM_COLS-1)>>maxBlockBit);
 	colAdd <<= maxBlockBit;
@@ -494,6 +509,7 @@ void VaultController::AddressMapping(uint64_t physicalAddress, unsigned &bankAdd
 	
 	//Extract row address
 	rowAdd = physicalAddress & (NUM_ROWS-1);
+	*/
 }
 
 //
@@ -566,5 +582,6 @@ void VaultController::PrintState()
 	
 	commandQueue->PrintState();
 }
+
 
 } //namespace CasHMC
