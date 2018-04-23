@@ -100,9 +100,9 @@ We have included exmaple input files in $(HMCThermROOT)/Example/sim_info/. The u
       **-f** if the memory trace is from a file, the trace file name is specified here <br />
       **-x** and **-y** specifies the size (in byte) of a "mat" which is the smallest unit of memory [Default 512] <br />
       **-e** is the time step to print out the transient temperature and power profile <br /> 
-      **-d** specifies the directory saving the output files
-      **-q** specify the file of power profile of the processor layer
-      **-j** controls whether the run-time control is performed [1] or not [0]. [Default 0]
+      **-d** specifies the directory saving the output files <br /> 
+      **-q** specify the file of power profile of the processor layer <br /> 
+      **-j** controls whether the run-time control is performed [1] or not [0]. [Default 0] <br /> 
       **-h** will print out the help of the HMC simulator <br /> 
 
 
