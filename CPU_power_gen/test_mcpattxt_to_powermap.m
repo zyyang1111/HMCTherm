@@ -2,8 +2,6 @@ close all
 clear
 clc
 
-addpath ./TCG_operations/;
-addpath ./matlab_bgl/;
 addpath ./lib;
 
 dir_name = ['../Example/FFT_example/'];
@@ -111,24 +109,13 @@ power_den=(dyn+leak)./area.*1e8; %W/cm^2
 width=sqrt(area.*aspect);
 hight=width./aspect;
 
-load([siminfo_dir_name 'manual_FP.mat']);
-[ x, y ] = calc_FP( Gh, Gv, width, hight );
-
-% ========= export the power information for each core ============
-csv_data=[width hight x y dyn leak ones(size(x))];
-dlmwrite([dir_name 'initial_floorplan.csv'],csv_data,'precision',10);
-
-% ====== generate the power density map for the whole circuit ======
-% use the precalculated floorplan infomation 
-csv_data_dim=csvread([siminfo_dir_name 'final_floorplan_reliability_unaware_aircooled_modsim.csv']);
-width=csv_data_dim(:,1);
-height=csv_data_dim(:,2);
-x=csv_data_dim(:,3);
-y=csv_data_dim(:,4);
-P_leak(:)=csv_data_dim(:,6);
-
-P=csv_data(:,5);
-L=csv_data(:,7:end)';
+% The user can speicify the dimension of modules
+width = [400;420;540;110;110;490;50;70;160;220;220;1950;940;1840;110;1730];
+height = [110;140;270;100;100;500;200;50;170;50;110;2960;330;1410;920;940];
+x = [0;0;420;960;1070;960;1450;1500;1450;1610;1610;1840;0;0;0;110];
+y = [2820;2680;2680;2850;2850;2350;2520;2520;2350;2460;2350;0;2350;940;0;0];
+P_leak = leak; 
+P = dyn; 
 
 P=mean(P,2);
 P_leak=mean(P_leak,2);
@@ -142,11 +129,12 @@ core_idx=setdiff(1:length(name_vector),MC_idx);
 MC_area=sum(width(MC_idx).*height(MC_idx))*1e-6; %convert um^2 to mm^2
 core_area=sum(width(core_idx).*height(core_idx))*1e-6; %convert um^2 to mm^2
                                             
-topologies = enumerate_network_topologies( num_cores );
-[ topology, topology_delay ] = identify_best_topology( topologies, num_MC, core_area, MC_area, single_cycle_WL );
+% topologies = enumerate_network_topologies( num_cores );
+% [ topology, topology_delay ] = identify_best_topology( topologies, num_MC, core_area, MC_area, single_cycle_WL );
+
+topology = [4 4 1]; % topology of 16 cores;
 
 % Gh and Gv are from "manual_FP.mat"
-[ x, y ] = calc_FP( Gh, Gv, width, height );
 dimX0=max(x+width)-min(x);
 dimY0=max(y+height)-min(y);
                                             

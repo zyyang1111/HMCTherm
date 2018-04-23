@@ -22,10 +22,7 @@ clk=2000; % MHz -- CPU frequency
 mem_clk = 1250; % MHz -- memory frequency 
 mem_size = 4096; % MB -- HMC size 
 num_banks = 16; % number of banks 
-M=csvread([siminfo_dir_name 'topology_delay.csv']);
-topology=M(:,1:3);
-network_latency=M(:,4);
-router_ports=1+(topology(1)>1)+(topology(2)>1)+(topology(3)>1)+(topology(1)>2)+(topology(2)>2)+(topology(3)>2);
-
+network_latency = 3; 
+router_ports = 5;
 
 m2s_to_mcpat( mem_file, pipeline_file, memconfig_file, net_file, xml_file, num_MC, clk, router_ports, network_latency, NOC_width, mem_clk, mem_size, num_banks );

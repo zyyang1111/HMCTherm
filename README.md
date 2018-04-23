@@ -54,6 +54,8 @@ version HMCTherm v1.0 - 2017.06.26
   $ make 
   ```
 ### Run your Simulation
+  In this branch, we integrate a run-time refresh control module to the HMC and develop a simulation framework to fulfill t he simulation. This simulation framework involves Multi2Sim for function simulation of multi-core processors, McPAT for estimation of the the processor power, HMCTherm for HMC simulation and MATLAB scripts for processing interface data. 
+
   In order to illustrate how HMCTherm works, we run FFT (./Example/splash2/codes/kernels/fft/) and plot the power and thermal profile of HMC. 
   - (1) build FFT
   ```
@@ -65,10 +67,14 @@ version HMCTherm v1.0 - 2017.06.26
   $ cd $(HMCThermROOT)/Example/FFT_example/
   $ sh run.sh
   ```
-  Please see here for details of the arguments of the architectural simulation. This simulation generates four output files: <br />
-    - **pipeline.out** : <br />
-    - **mem.out** : <br />
-    - **net.out** : <br />
+  We modify the original Multi2Sim such that it can output memory trace. You can find and download this program from https://github.com/zyyang1111/multi2sim-memtrace. Be sure to change use the correct Multi2Sim directory in run.sh. The simulation requires three input files: <br />
+    - **cpuconfig** <br />
+    - **memconfig** <br />
+    - **netconfig** <br />
+We have included exmaple input files in $(HMCThermROOT)/Example/sim_info/. The users can create their own files. This simulation generates four output files: <br />
+    - **pipeline.out** <br />
+    - **mem.out** <br />
+    - **net.out** <br />
     - **mem_trace.tr** : the trace of memory access
 
    - (3) generate McPAT input files using pipeline.out, mem.out and net.out
@@ -76,7 +82,7 @@ version HMCTherm v1.0 - 2017.06.26
    $ cd $(HMCThermROOT)/CPU_power_gen/
    $ matlab test_m2s_to_mcpat.m
    ```
-   This will generate mcpat.xml in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script.
+   This will generate mcpat.xml in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script. 
 
    - (4) run McPAT
    ``` 
