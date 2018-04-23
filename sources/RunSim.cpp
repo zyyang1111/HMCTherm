@@ -68,7 +68,6 @@ void help()
 	cout<<"-e (--power_epoch) : The number of HMC cycles for one power epoch [Default 1000]"<<endl;
 	cout<<"-x (--mat_x) : The number of DRAM cells of a mat in x-direction [Default 512]"<<endl;
 	cout<<"-y (--mat_y) : The number of DRAM cells of a mat in y-direction [Default 512]"<<endl;
-	cout<<"-q (--logicP_file) : CPU power file name"<<endl;
 	cout<<"-d (--result_directory) : Directory name for the results"<<endl;
 	cout<<"-b (--CPU_CLK_PERIOD) : (ns) The CPU operation period [Default 0.5]"<<endl;
 	cout<<"-k (--cont_bool) : Indicating whether using the intermediate data [Default 0 -- not using]"<<endl;

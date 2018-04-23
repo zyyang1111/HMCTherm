@@ -1,8 +1,0 @@
-*.o
-*.a
-*.log
-*.trs
-.deps
-Makefile
-Makefile.in
-src_*
