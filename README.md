@@ -65,7 +65,7 @@ version HMCTherm v1.0 - 2018.04.25
       - **Average_power.csv** : the average power profile within the time of simulation <br />
       - **static_temperature.csv** : the static thermal profile given the average power <br />
 
-   - (7) Plot the power and temperature profile using the python scripts in $(HMCThermROOT)/script/
+   - (2) Plot the power and temperature profile using the python scripts in $(HMCThermROOT)/script/
      - plot_trans.py : plot the transient power or temperature profile 
      - plot_staticT.py : plot the static temperature profile
      - plot_staticP.py : plot the average power profile
