@@ -82,7 +82,9 @@ We have included exmaple input files in $(HMCThermROOT)/Example/sim_info/. The u
    $ cd $(HMCThermROOT)/CPU_power_gen/
    $ matlab test_m2s_to_mcpat.m
    ```
-   This will generate mcpat.xml in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script. 
+   This will generate mcpat.xml in $(HMCThermROOT)/Example/FFT\_example/. Please see here for more details of the usage of this MATLAB script. #1
+mojombo#1
+mojombo/github-flavored-markdown#1
 
    - (4) run McPAT
    ``` 
